@@ -1986,9 +1986,18 @@
                 // 请求设备访问权限
                 const devices = await navigator.hid.requestDevice({
                     filters: [
-                        { vendorId: 0x239A }, // Adafruit的Vendor ID
-                        { vendorId: 0x2E8A }  // Raspberry Pi的Vendor ID
-                    ]
+    { vendorId: 0x239A },
+    { vendorId: 0x2E8A },
+    { vendorId: 0x046D },
+    { vendorId: 0x045E },
+    { vendorId: 0x413C },
+    { vendorId: 0x03F0 },
+    { vendorId: 0x05AC },
+    { vendorId: 0x17EF },
+    { vendorId: 0x1532 },
+    { vendorId: 0x1038 },
+    { vendorId: 0x1B1C }
+]
                 });
                 
                 if (devices.length === 0) {
