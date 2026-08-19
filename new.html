@@ -1,0 +1,2337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钓鱼助手</title>
+    <style>
+        /* ... (样式保持不变，您可以直接复制粘贴您原有的样式) ... */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: linear-gradient(135deg, #000000 0%, #000000 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1b7ec4 0%, #1b7ec4 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .save-web-btn { margin-top: 15px; padding: 10px 25px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 25px; color: white; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .save-web-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .status-bar { background: #f8f9fa; padding: 15px 30px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .connection-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .status-indicator { width: 12px; height: 12px; border-radius: 50%; background: #dc3545; }
+        .status-indicator.connected { background: #28a745; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 40px; }
+        .section-title { font-size: 1.8em; color: #667eea; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e9ecef; }
+        .control-panel { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
+        .fishing-mode-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; align-items: center; margin-bottom: 15px; }
+        .fishing-mode-btn { padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; background: white; color: #666; }
+        .fishing-mode-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .fishing-mode-btn-active { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border-color: #007bff; }
+        .fishing-mode-btn-inactive { background: white; color: #666; border-color: #ddd; }
+        .control-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; align-items: center; }
+        .control-row-timer { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .timer-label { font-weight: bold; color: #764ba2; min-width: 80px; }
+        .control-btn { padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; background: white; color: #666; }
+        .control-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .control-btn-active { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-color: #28a745; }
+        .control-btn-inactive { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; border-color: #dc3545; }
+        .timer-btn { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; background: white; color: #666; }
+        .timer-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .timer-btn-active { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white; border-color: #ffc107; }
+        .time-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .time-control { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; }
+        .time-control:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+        .time-control h3 { color: #764ba2; margin-bottom: 15px; font-size: 1.3em; }
+        .time-display { font-size: 2em; font-weight: bold; color: #667eea; margin: 15px 0; text-align: center; }
+        .slider-container { margin: 20px 0; }
+        .slider { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: linear-gradient(to right, #667eea, #764ba2); border-radius: 4px; outline: none; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; border: 3px solid #667eea; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s; }
+        .slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .person-control { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; max-width: 500px; margin: 0 auto 30px; }
+        .person-control:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+        .person-control h3 { color: #764ba2; margin-bottom: 15px; font-size: 1.3em; text-align: center; }
+        .person-display { font-size: 2em; font-weight: bold; color: #667eea; margin: 15px 0; text-align: center; }
+        .person-selector { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .person-row { display: flex; justify-content: center; gap: 10px; width: 100%; margin-bottom: 10px; }
+        .person-btn { min-width: 40px; height: 40px; padding: 0 15px; border: 2px solid #667eea; border-radius: 20px; background: white; color: #667eea; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .person-btn:hover { background: #667eea; color: white; }
+        .person-btn.active { background: #667eea; color: white; }
+        .person-info { text-align: center; margin-top: 15px; color: #666; font-size: 0.9em; line-height: 1.4; }
+        .btn { padding: 12px 25px; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-danger { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4); }
+        .btn-small { padding: 8px 15px; font-size: 0.9em; letter-spacing: 0.5px; }
+        .btn-default { background: #28a745; color: white; margin-right: 10px; }
+        .btn-default:hover { background: #218838; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); }
+        .current-status { background: linear-gradient(135deg, #343a40 0%, #495057 100%); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-top: 15px; }
+        .status-item { text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .status-label { font-size: 0.9em; opacity: 0.9; margin-bottom: 5px; }
+        .status-value { font-size: 1.4em; font-weight: bold; }
+        .countdown-container { text-align: center; margin: 20px 0; }
+        .countdown-label { font-size: 1.2em; margin-bottom: 10px; opacity: 0.9; }
+        .countdown { font-size: 2.5em; font-family: 'Courier New', monospace; font-weight: bold; }
+        .device-info-row { grid-column: span 2; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 12px; margin-top: 5px; }
+        .device-info-item { text-align: center; flex: 1; min-width: 100px; }
+        .device-info-label { font-size: 0.8em; opacity: 0.8; margin-bottom: 3px; }
+        .device-info-value { font-size: 1.1em; font-weight: bold; font-family: monospace; }
+        .keymap-table-container { overflow-x: auto; margin: 20px 0; }
+        .keymap-table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); }
+        .keymap-table th, .keymap-table td { padding: 15px; text-align: center; border-bottom: 1px solid #e9ecef; }
+        .keymap-table th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; font-size: 1.1em; }
+        .keymap-table tr:hover { background: #f8f9fa; }
+        .keymap-table select { padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.9em; background: white; cursor: pointer; transition: all 0.3s; min-width: 80px; }
+        .keymap-table select:hover:not(:disabled) { border-color: #667eea; }
+        .keymap-table select:focus:not(:disabled) { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); }
+        .keymap-table select:disabled { background: #e9ecef; cursor: not-allowed; color: #6c757d; }
+        .keymap-action-btn { padding: 6px 12px; margin: 0 5px; border: none; border-radius: 6px; font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .keymap-save-btn { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+        .keymap-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(40, 167, 69, 0.3); }
+        .keymap-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .keymap-reset-btn { background: #ffc107; color: #333; }
+        .keymap-reset-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3); }
+        .keymap-reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .keymap-reset-all-btn { margin-top: 20px; padding: 12px 30px; background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; border: none; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: all 0.3s; display: block; margin-left: auto; margin-right: auto; }
+        .keymap-reset-all-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4); }
+        .keymap-reset-all-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .keymap-note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 20px; margin-top: 20px; border-radius: 8px; font-size: 0.9em; color: #856404; }
+        .toggle-switch { width: 60px; height: 30px; background: #dc3545; border-radius: 15px; position: relative; cursor: pointer; transition: all 0.3s; margin: 0 auto; }
+        .toggle-switch.active { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .toggle-switch.disabled { background: #adb5bd; cursor: not-allowed; opacity: 0.6; }
+        .toggle-slider { width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .toggle-switch.active .toggle-slider { left: 32px; }
+        .toggle-switch.disabled .toggle-slider { left: 2px; }
+        .advanced-options { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); margin-top: 20px; }
+        .advanced-title { color: #764ba2; margin-bottom: 20px; font-size: 1.3em; display: flex; align-items: center; gap: 10px; }
+        .device-name-section { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; }
+        .device-name-label { font-weight: bold; color: #667eea; min-width: 100px; }
+        .device-name-display { font-size: 1.1em; color: #333; background: white; padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd; min-width: 200px; }
+        .device-name-input { padding: 10px 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; width: 250px; transition: all 0.3s; }
+        .device-name-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); }
+        .device-name-input.invalid { border-color: #dc3545; }
+        .device-name-hint { font-size: 0.85em; color: #6c757d; margin-left: 10px; }
+        .device-name-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .adv-btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .adv-btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .adv-btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .adv-btn-default { background: #28a745; color: white; }
+        .adv-btn-default:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); }
+        .adv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .adv-note { background: #e7f3ff; border-left: 4px solid #17a2b8; padding: 12px 20px; margin-top: 15px; border-radius: 8px; font-size: 0.9em; color: #0c5460; }
+        .fight-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .fight-setting-item { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; }
+        .fight-setting-item:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+        .fight-setting-title { color: #764ba2; margin-bottom: 15px; font-size: 1.3em; display: flex; justify-content: space-between; align-items: center; }
+        .fight-setting-controls { display: flex; gap: 10px; align-items: center; margin-top: 15px; }
+        .fight-setting-input { flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; text-align: center; }
+        .fight-setting-unit { min-width: 60px; color: #666; font-size: 0.9em; }
+        .fight-setting-save-btn { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.9em; cursor: pointer; transition: all 0.3s; }
+        .fight-setting-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .fight-setting-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .fight-setting-info { font-size: 0.9em; color: #666; margin-top: 10px; line-height: 1.4; }
+        .fight-setting-value { font-size: 1.8em; font-weight: bold; color: #667eea; margin: 10px 0; text-align: center; }
+        .fight-setting-default-btn { padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 0.8em; cursor: pointer; transition: all 0.3s; }
+        .fight-setting-default-btn:hover:not(:disabled) { background: #218838; }
+        .fight-setting-default-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .reset-all-btn { margin-top: 20px; margin-right: 15px; padding: 12px 30px; background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; border: none; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: all 0.3s; display: inline-block; }
+        .reset-all-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4); }
+        .reset-all-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .fight-setting-saving { text-align: center; font-size: 0.9em; color: #28a745; margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
+        .fight-setting-saving.show { opacity: 1; }
+        .fishing-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .fishing-setting-item { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; }
+        .fishing-setting-item:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+        .fishing-setting-title { color: #764ba2; margin-bottom: 15px; font-size: 1.3em; display: flex; justify-content: space-between; align-items: center; }
+        .fishing-setting-controls { display: flex; gap: 10px; align-items: center; margin-top: 15px; flex-wrap: wrap; }
+        .fishing-setting-input { flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; text-align: center; min-width: 120px; }
+        .fishing-setting-unit { min-width: 60px; color: #666; font-size: 0.9em; }
+        .fishing-setting-save-btn { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.9em; cursor: pointer; transition: all 0.3s; }
+        .fishing-setting-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .fishing-setting-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .fishing-setting-info { font-size: 0.9em; color: #666; margin-top: 10px; line-height: 1.4; }
+        .fishing-setting-value { font-size: 1.8em; font-weight: bold; color: #667eea; margin: 10px 0; text-align: center; }
+        .fishing-setting-default-btn { padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 0.8em; cursor: pointer; transition: all 0.3s; }
+        .fishing-setting-default-btn:hover:not(:disabled) { background: #218838; }
+        .fishing-setting-default-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .fishing-setting-saving { text-align: center; font-size: 0.9em; color: #28a745; margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
+        .fishing-setting-saving.show { opacity: 1; }
+        .dual-btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .dual-btn { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; background: white; color: #666; min-width: 100px; }
+        .dual-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .dual-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .dual-btn-active { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-color: #28a745; }
+        .dual-btn-inactive { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; border-color: #dc3545; }
+        .other-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .other-setting-item { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; }
+        .other-setting-item:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+        .other-setting-title { color: #764ba2; margin-bottom: 15px; font-size: 1.3em; text-align: center; }
+        .other-setting-value { font-size: 1.8em; font-weight: bold; color: #667eea; margin: 10px 0; text-align: center; }
+        .other-setting-buttons { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
+        .other-setting-btn { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; background: white; color: #666; min-width: 100px; }
+        .other-setting-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .other-setting-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .other-setting-btn-active { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-color: #28a745; }
+        .other-setting-btn-inactive { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; border-color: #dc3545; }
+        .device-info-section { background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .device-info-title { color: #764ba2; font-size: 1.2em; margin-bottom: 15px; font-weight: bold; }
+        .device-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+        .device-edit-field { background: white; border-radius: 10px; padding: 12px; }
+        .device-edit-label { font-size: 0.85em; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .device-edit-input { width: 100%; padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.9em; font-family: monospace; }
+        .device-edit-input:focus { outline: none; border-color: #667eea; }
+        .device-edit-input.invalid { border-color: #dc3545; }
+        .device-info-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .dev-info-btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .dev-info-btn-save { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+        .dev-info-btn-save:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); }
+        .dev-info-btn-reset { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: #333; }
+        .dev-info-btn-reset:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4); }
+        .dev-info-btn-random { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; }
+        .dev-info-btn-random:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4); }
+        .dev-info-btn-refresh { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); color: white; }
+        .dev-info-btn-refresh:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4); }
+        .dev-info-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: white; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); transform: translateX(120%); transition: transform 0.3s; z-index: 1000; }
+        .notification.show { transform: translateX(0); }
+        .notification.success { border-left: 5px solid #28a745; }
+        .notification.error { border-left: 5px solid #dc3545; }
+        .notification.warning { border-left: 5px solid #ffc107; }
+        .notification.info { border-left: 5px solid #17a2b8; }
+        .saving-indicator { text-align: center; font-size: 0.9em; color: #28a745; margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
+        .saving-indicator.show { opacity: 1; }
+        .save-delay { position: fixed; bottom: 20px; right: 20px; background: rgba(40, 167, 69, 0.9); color: white; padding: 10px 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); display: none; z-index: 1000; }
+        .save-delay.show { display: block; animation: fadeInOut 2s ease-in-out; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(10px); } 20% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-10px); } }
+        .button-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        #taskbar-indicator { position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 9999; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2); font-family: 'Courier New', monospace; transition: transform 0.3s ease; }
+        .taskbar-hidden { transform: translateY(100%); }
+        .taskbar-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .taskbar-title { font-size: 1.2em; font-weight: bold; }
+        .taskbar-countdown { font-size: 1.5em; font-weight: bold; background: rgba(0, 0, 0, 0.2); padding: 5px 15px; border-radius: 10px; min-width: 120px; text-align: center; }
+        .taskbar-person { font-size: 1.2em; font-weight: bold; background: rgba(255, 255, 255, 0.2); padding: 5px 15px; border-radius: 10px; min-width: 80px; text-align: center; }
+        .taskbar-status { display: flex; align-items: center; gap: 10px; font-size: 0.9em; }
+        .taskbar-reset-btn { background: rgba(220, 53, 69, 0.9); border: none; color: white; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 0.9em; font-weight: bold; transition: background 0.3s, transform 0.2s; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .taskbar-reset-btn:hover:not(:disabled) { background: rgba(220, 53, 69, 1); transform: translateY(-2px); }
+        .taskbar-reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .reset-row { display: flex; justify-content: center; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+        .save-btn-container { display: flex; justify-content: center; margin-top: 15px; }
+        .save-btn-text { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+        .confirm-line { font-size: 0.8em; margin-bottom: 2px; }
+        .save-line { font-size: 0.9em; font-weight: bold; }
+        .init-progress { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 15px; padding: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); z-index: 10000; min-width: 350px; text-align: center; }
+        .init-progress.hidden { display: none; }
+        .progress-title { font-size: 1.2em; font-weight: bold; color: #667eea; margin-bottom: 20px; }
+        .progress-steps { text-align: left; margin: 20px 0; }
+        .progress-step { padding: 8px 0; display: flex; align-items: center; gap: 10px; color: #666; }
+        .progress-step.completed { color: #28a745; }
+        .progress-step.active { color: #667eea; font-weight: bold; }
+        .progress-step.failed { color: #dc3545; }
+        .progress-step .step-icon { width: 24px; text-align: center; }
+        .progress-bar-container { width: 100%; height: 6px; background: #e9ecef; border-radius: 3px; margin-top: 20px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 0%; transition: width 0.3s; }
+        @media (max-width: 768px) { .container { border-radius: 10px; } .header { padding: 20px; } .header h1 { font-size: 2em; } .content { padding: 20px; } .fishing-mode-row { grid-template-columns: 1fr; gap: 10px; } .control-row { grid-template-columns: 1fr; gap: 10px; } .control-row-timer { flex-direction: column; align-items: stretch; } .timer-label { text-align: center; } .time-controls { grid-template-columns: 1fr; } .person-selector { gap: 8px; } .person-btn { min-width: 35px; height: 35px; font-size: 0.9em; } .fight-settings-grid, .fishing-settings-grid, .other-settings-grid { grid-template-columns: 1fr; } .fight-setting-controls, .fishing-setting-controls { flex-direction: column; align-items: stretch; } .fight-setting-input, .fishing-setting-input { width: 100%; } .fight-setting-save-btn, .fishing-setting-save-btn { width: 100%; } .dual-btn-group { flex-direction: column; } .other-setting-buttons { flex-direction: column; } .device-edit-grid { grid-template-columns: 1fr; } .keymap-table th, .keymap-table td { padding: 10px; font-size: 0.85em; } .keymap-action-btn { padding: 4px 8px; margin: 2px; } .keymap-table select { padding: 5px 8px; font-size: 0.8em; min-width: 65px; } .device-name-section { flex-direction: column; align-items: stretch; } .device-name-input { width: 100%; } .device-name-buttons { justify-content: center; } #taskbar-indicator { flex-direction: column; gap: 10px; padding: 10px; } .taskbar-left { width: 100%; justify-content: space-between; } .taskbar-status { width: 100%; justify-content: center; } .reset-row { flex-direction: column; align-items: center; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎣 钓鱼助手</h1>
+            <p>连接并配置您的钓鱼助手设备</p>
+            <button class="save-web-btn" onclick="saveWebPageToLocal()">💾 将配置工具保存到本地</button>
+        </div>
+        
+        <div class="status-bar">
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">未连接设备</span>
+                <span id="deviceNameStatus" style="margin-left: 15px; font-size: 0.9em; background: rgba(0,0,0,0.05); padding: 2px 10px; border-radius: 15px;"></span>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" id="connectBtn">连接设备</button>
+                <button class="btn btn-secondary" id="disconnectBtn" disabled>断开连接</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- 当前状态模块 -->
+            <div class="section">
+                <h2 class="section-title">📊 当前状态</h2>
+                <div class="current-status">
+                    <div class="countdown-container">
+                        <div class="countdown-label">计时剩余</div>
+                        <div class="countdown" id="countdown">--:--:--</div>
+                    </div>
+                    <div class="status-grid">
+                        <div class="status-item"><div class="status-label">当前计时</div><div class="status-value" id="currentMode">未计时</div></div>
+                        <div class="status-item"><div class="status-label">钓鱼模式</div><div class="status-value" id="fishingMode">关闭</div></div>
+                        <div class="status-item"><div class="status-label">打怪模式</div><div class="status-value" id="fightingMode">关闭</div></div>
+                        <div class="status-item"><div class="status-label">游戏模式</div><div class="status-value" id="gameMode">--</div></div>
+                        <div class="status-item"><div class="status-label">循环人数模式</div><div class="status-value" id="cyclePersonCount">--</div></div>
+                        <div class="status-item"><div class="status-label">当前第几人</div><div class="status-value" id="currentPerson">--</div></div>
+                        <div class="status-item"><div class="status-label">钓鱼速度</div><div class="status-value" id="speedModeStatus">稳定</div></div>
+                        <div class="status-item"><div class="status-label">节能模式</div><div class="status-value" id="powerSaveStatus">关闭</div></div>
+                        <div class="status-item"><div class="status-label">换人速度</div><div class="status-value" id="changePersonSpeedStatus">稳定</div></div>
+                        <div class="status-item"><div class="status-label">设备名称</div><div class="status-value" id="deviceNameStatusValue">--</div></div>
+                        <div class="device-info-row"><div class="device-info-item"><div class="device-info-label">VID (厂商ID)</div><div class="device-info-value" id="vidValue">--</div></div><div class="device-info-item"><div class="device-info-label">PID (产品ID)</div><div class="device-info-value" id="pidValue">--</div></div><div class="device-info-item"><div class="device-info-label">制造商</div><div class="device-info-value" id="manufacturerValue">--</div></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 控制面板 -->
+            <div class="section">
+                <h2 class="section-title">🎮 控制面板</h2>
+                <div class="control-panel">
+                    <div class="fishing-mode-row"><button class="fishing-mode-btn fishing-mode-btn-inactive" id="classicModeBtn" onclick="setFishingMode(0)">怀旧服钓鱼模式</button><button class="fishing-mode-btn fishing-mode-btn-inactive" id="retailModeBtn" onclick="setFishingMode(1)">正式服钓鱼模式</button></div>
+                    <div class="fishing-mode-row" style="margin-top: -10px;"><div style="font-size: 0.85em; color: #666; grid-column: span 2; text-align: center;">• 怀旧服包括：60级服、TBC、WLK、大灾变、熊猫人、时光服等</div></div>
+                    <div class="control-row"><button class="control-btn" id="startFishingBtn" onclick="startFishing()">开启钓鱼</button><button class="control-btn" id="stopFishingBtn" onclick="stopFishing()">关闭钓鱼</button></div>
+                    <div style="font-size: 0.85em; color: #666; text-align: center;">• 将钓鱼技能放到技能栏，默认快捷键F8<br>• 将上饵宏或饵料放置在技能栏，默认快捷键F11<br>• 将删垃圾宏放置在技能栏，默认快捷键F12<br>• 勾选开启交互键，与目标互动，默认快捷键F9<br>• 与鼠标悬停处互动，默认快捷键F10</div>
+                    <div class="control-row-timer"><div class="timer-label">切换定时（对应钓鱼器右键灯色）:</div><button class="timer-btn" onclick="toggleCycleMode(0)">无定时</button><button class="timer-btn" onclick="toggleCycleMode(1)">绿灯</button><button class="timer-btn" onclick="toggleCycleMode(2)">黄灯</button><button class="timer-btn" onclick="toggleCycleMode(3)">红灯</button><button class="timer-btn" onclick="toggleCycleMode(4)">紫灯</button></div>
+                    <div class="control-row"><button class="control-btn" id="startFightingBtn" onclick="startFighting()">开启打怪</button><button class="control-btn" id="stopFightingBtn" onclick="stopFighting()">关闭打怪</button></div>
+                </div>
+            </div>
+            
+            <!-- 循环人数设置 -->
+            <div class="section">
+                <h2 class="section-title">👥 循环人数设置</h2>
+                <div class="person-control"><h3>换人循环人数设置</h3><div class="person-display" id="personDisplay">无限</div><div class="person-selector"><div class="person-row"><button class="person-btn" id="personBtn0" onclick="setPersonCount(0)">无限</button><button class="person-btn" id="personBtn1" onclick="setPersonCount(1)">1</button><button class="person-btn" id="personBtn2" onclick="setPersonCount(2)">2</button><button class="person-btn" id="personBtn3" onclick="setPersonCount(3)">3</button><button class="person-btn" id="personBtn4" onclick="setPersonCount(4)">4</button><button class="person-btn" id="personBtn5" onclick="setPersonCount(5)">5</button></div><div class="person-row"><button class="person-btn" id="personBtn6" onclick="setPersonCount(6)">6</button><button class="person-btn" id="personBtn7" onclick="setPersonCount(7)">7</button><button class="person-btn" id="personBtn8" onclick="setPersonCount(8)">8</button><button class="person-btn" id="personBtn9" onclick="setPersonCount(9)">9</button></div></div><div class="person-info"><p>• <strong>换人宏</strong>：/logout</p><p>• 换人宏放置在技能栏，默认快捷键F4</p><p>• <strong>无限</strong>：每次小退都换下一个人，参与换人的人无限多</p><p>• <strong>1人模式</strong>：定时小退后重新登录同一角色（下线再上线）</p><p>• <strong>2-9人</strong>：设置有限循环人数，最后一个人返回人物列表会自动按(N-1)次向上键回到第一个人</p><p>• <strong>退出宏</strong>：/quit</p><p>• 如果不想换人，只要当前人物定时退出，则把退出宏放置在技能栏，默认快捷键F4</p></div></div>
+            </div>
+            
+            <!-- 钓鱼换人时间设置 -->
+            <div class="section">
+                <h2 class="section-title">⏰ 钓鱼换人时间设置</h2>
+                <div class="time-controls">
+                    <div class="time-control"><h3>绿灯模式</h3><div class="time-display" id="time1hDisplay">--分钟</div><div class="slider-container"><input type="range" min="1" max="120" value="59" class="slider" id="time1hSlider"></div><div class="save-btn-container"><button class="btn btn-default btn-small" onclick="setDefaultTime1h()">默认60</button><button class="btn btn-primary btn-small" onclick="saveTime1h()"><div class="save-btn-text"><div class="confirm-line">确认</div><div class="save-line">保存</div></div></button></div><div class="saving-indicator" id="time1hSaving"></div></div>
+                    <div class="time-control"><h3>黄灯模式</h3><div class="time-display" id="time2hDisplay">--分钟</div><div class="slider-container"><input type="range" min="1" max="240" value="119" class="slider" id="time2hSlider"></div><div class="save-btn-container"><button class="btn btn-default btn-small" onclick="setDefaultTime2h()">默认120</button><button class="btn btn-primary btn-small" onclick="saveTime2h()"><div class="save-btn-text"><div class="confirm-line">确认</div><div class="save-line">保存</div></div></button></div><div class="saving-indicator" id="time2hSaving"></div></div>
+                    <div class="time-control"><h3>红灯模式</h3><div class="time-display" id="time3hDisplay">--分钟</div><div class="slider-container"><input type="range" min="1" max="360" value="179" class="slider" id="time3hSlider"></div><div class="save-btn-container"><button class="btn btn-default btn-small" onclick="setDefaultTime3h()">默认180</button><button class="btn btn-primary btn-small" onclick="saveTime3h()"><div class="save-btn-text"><div class="confirm-line">确认</div><div class="save-line">保存</div></div></button></div><div class="saving-indicator" id="time3hSaving"></div></div>
+                    <div class="time-control"><h3>紫灯模式</h3><div class="time-display" id="time4hDisplay">--分钟</div><div class="slider-container"><input type="range" min="1" max="480" value="239" class="slider" id="time4hSlider"></div><div class="save-btn-container"><button class="btn btn-default btn-small" onclick="setDefaultTime4h()">默认240</button><button class="btn btn-primary btn-small" onclick="saveTime4h()"><div class="save-btn-text"><div class="confirm-line">确认</div><div class="save-line">保存</div></div></button></div><div class="saving-indicator" id="time4hSaving"></div></div>
+                </div>
+            </div>
+            
+            <!-- 上饵与抛竿设置 -->
+            <div class="section">
+                <h2 class="section-title">🐟 上饵与抛竿设置</h2>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">设置F11上饵间隔（秒）和F8重新抛竿间隔（秒）</p>
+                <div class="fishing-settings-grid">
+                    <div class="fishing-setting-item"><div class="fishing-setting-title"><span>F8重新抛竿间隔</span><button class="fishing-setting-default-btn" onclick="setDefaultFishingF8()">默认30秒</button></div><div class="fishing-setting-value" id="fishingF8Display">--秒</div><div class="fishing-setting-controls"><input type="number" class="fishing-setting-input" id="fishingF8Input" step="0.1" min="0.5" max="60" placeholder="输入秒数"><span class="fishing-setting-unit">秒</span><button class="fishing-setting-save-btn" onclick="saveFishingF8()" id="fishingF8SaveBtn">确认保存</button></div><div class="fishing-setting-saving" id="fishingF8Saving"></div><div class="fishing-setting-info">• 默认值：30秒<br>• 钓鱼模式中F8触发后等待此时间再次触发F8<br>• 可设置范围：0.5 - 60秒</div></div>
+                    <div class="fishing-setting-item"><div class="fishing-setting-title"><span>F11上饵间隔</span><button class="fishing-setting-default-btn" onclick="setDefaultFishingF11()">默认610秒</button></div><div class="fishing-setting-value" id="fishingF11Display">--秒</div><div class="fishing-setting-controls"><input type="number" class="fishing-setting-input" id="fishingF11Input" step="1" min="1" max="3600" placeholder="输入秒数"><span class="fishing-setting-unit">秒</span><button class="fishing-setting-save-btn" onclick="saveFishingF11()" id="fishingF11SaveBtn">确认保存</button></div><div class="fishing-setting-saving" id="fishingF11Saving"></div><div class="fishing-setting-info">• 默认值：610秒（约10分10秒）<br>• 钓鱼模式周期性触发F11的时间间隔<br>• 可设置范围：1 - 3600秒</div></div>
+                </div>
+            </div>
+            
+            <!-- 打怪模式设置 -->
+            <div class="section">
+                <h2 class="section-title">⚔️ 打怪模式设置</h2>
+                <div class="fight-settings-grid">
+                    <div class="fight-setting-item"><div class="fight-setting-title"><span>F5快捷键循环</span><button class="fight-setting-default-btn" onclick="setDefaultFightF5()">默认30秒</button></div><div class="fight-setting-value" id="fightF5Display">--秒</div><div class="fight-setting-controls"><input type="number" class="fight-setting-input" id="fightF5Input" step="0.1" min="0.1" max="3600" placeholder="输入时间"><span class="fight-setting-unit">秒</span><button class="fight-setting-save-btn" onclick="saveFightF5()" id="fightF5SaveBtn">保存</button></div><div class="fight-setting-saving" id="fightF5Saving"></div><div class="fight-setting-info">• 默认值：30秒<br>• 实际间隔：设定值 ±30%<br>• 可设置范围：0.1 - 3600秒</div></div>
+                    <div class="fight-setting-item"><div class="fight-setting-title"><span>F6快捷键循环</span><button class="fight-setting-default-btn" onclick="setDefaultFightF6()">默认0.8秒</button></div><div class="fight-setting-value" id="fightF6Display">--秒</div><div class="fight-setting-controls"><input type="number" class="fight-setting-input" id="fightF6Input" step="0.1" min="0.1" max="3600" placeholder="输入时间"><span class="fight-setting-unit">秒</span><button class="fight-setting-save-btn" onclick="saveFightF6()" id="fightF6SaveBtn">保存</button></div><div class="fight-setting-saving" id="fightF6Saving"></div><div class="fight-setting-info">• 默认值：0.8秒<br>• 实际间隔：设定值 ±30%<br>• 可设置范围：0.1 - 3600秒</div></div>
+                    <div class="fight-setting-item"><div class="fight-setting-title"><span>F7快捷键循环</span><button class="fight-setting-default-btn" onclick="setDefaultFightF7()">默认5秒</button></div><div class="fight-setting-value" id="fightF7Display">--秒</div><div class="fight-setting-controls"><input type="number" class="fight-setting-input" id="fightF7Input" step="0.1" min="0.1" max="3600" placeholder="输入时间"><span class="fight-setting-unit">秒</span><button class="fight-setting-save-btn" onclick="saveFightF7()" id="fightF7SaveBtn">保存</button></div><div class="fight-setting-saving" id="fightF7Saving"></div><div class="fight-setting-info">• 默认值：5秒<br>• 实际间隔：设定值 ±30%<br>• 可设置范围：0.1 - 3600秒</div></div>
+                    <div class="fight-setting-item"><div class="fight-setting-title"><span>F9快捷键循环</span><button class="fight-setting-default-btn" onclick="setDefaultFightF9()">默认1.2秒</button></div><div class="fight-setting-value" id="fightF9Display">--秒</div><div class="fight-setting-controls"><input type="number" class="fight-setting-input" id="fightF9Input" step="0.1" min="0.1" max="3600" placeholder="输入时间"><span class="fight-setting-unit">秒</span><button class="fight-setting-save-btn" onclick="saveFightF9()" id="fightF9SaveBtn">保存</button></div><div class="fight-setting-saving" id="fightF9Saving"></div><div class="fight-setting-info">• 默认值：1.2秒<br>• 实际间隔：设定值 ±30%<br>• 可设置范围：0.1 - 3600秒</div></div>
+                    <div class="fight-setting-item"><div class="fight-setting-title"><span>空格键（跳跃）循环</span><button class="fight-setting-default-btn" onclick="setDefaultFightSpace()">默认30秒</button></div><div class="fight-setting-value" id="fightSpaceDisplay">--秒</div><div class="fight-setting-controls"><input type="number" class="fight-setting-input" id="fightSpaceInput" step="0.1" min="0.1" max="3600" placeholder="输入时间"><span class="fight-setting-unit">秒</span><button class="fight-setting-save-btn" onclick="saveFightSpace()" id="fightSpaceSaveBtn">保存</button></div><div class="fight-setting-saving" id="fightSpaceSaving"></div><div class="fight-setting-info">• 默认值：30秒<br>• 打怪模式下循环按空格键<br>• 可设置范围：0.1 - 3600秒</div></div>
+                </div>
+                <div class="button-bar"><button class="reset-all-btn" onclick="resetAllFightSettings()">重置所有打怪设置为默认值</button></div>
+            </div>
+            
+            <!-- 其他设置模块 -->
+            <div class="section">
+                <h2 class="section-title">⚙️ 其他设置</h2>
+                <div class="other-settings-grid">
+                    <div class="other-setting-item"><div class="other-setting-title"><span>CapsLock控制 🔒</span></div><div class="other-setting-value" id="capslockDisplay">开启</div><div class="other-setting-buttons"><button class="other-setting-btn" id="capslockOnBtn" onclick="setCapsLockControl(true)">开启CapsLock控制</button><button class="other-setting-btn" id="capslockOffBtn" onclick="setCapsLockControl(false)">关闭CapsLock控制</button></div><div class="fishing-setting-info">• 双击CapsLock键切换钓鱼模式开关</div></div>
+                    <div class="other-setting-item"><div class="other-setting-title"><span>NumLock控制 🔢</span></div><div class="other-setting-value" id="numlockDisplay">开启</div><div class="other-setting-buttons"><button class="other-setting-btn" id="numlockOnBtn" onclick="setNumLockControl(true)">开启NumLock控制</button><button class="other-setting-btn" id="numlockOffBtn" onclick="setNumLockControl(false)">关闭NumLock控制</button></div><div class="fishing-setting-info">• 双击NumLock键切换循环模式/打怪模式</div></div>
+                    <div class="other-setting-item"><div class="other-setting-title"><span>ScrollLock控制 📜</span></div><div class="other-setting-value" id="scrolllockDisplay">开启</div><div class="other-setting-buttons"><button class="other-setting-btn" id="scrolllockOnBtn" onclick="setScrollLockControl(true)">开启ScrollLock控制</button><button class="other-setting-btn" id="scrolllockOffBtn" onclick="setScrollLockControl(false)">关闭ScrollLock控制</button></div><div class="fishing-setting-info">• 四次快速按ScrollLock键进入刷机模式</div></div>
+                    <div class="fishing-setting-item"><div class="fishing-setting-title"><span>钓鱼速度 ⚡</span></div><div class="fishing-setting-value" id="speedModeDisplayValue">稳定</div><div class="dual-btn-group"><button class="dual-btn" id="speedModeFastBtn" onclick="setSpeedModeEnabled(true)">快速</button><button class="dual-btn" id="speedModeSlowBtn" onclick="setSpeedModeEnabled(false)">稳定</button></div><div class="fishing-setting-info">• 注意：若启用“快速”，建议游戏中安装快速拾取插件</div></div>
+                    <div class="fishing-setting-item"><div class="fishing-setting-title"><span>节能模式 💚</span></div><div class="fishing-setting-value" id="powerSaveDisplayValue">开启</div><div class="dual-btn-group"><button class="dual-btn" id="powerSaveOnBtn" onclick="setPowerSaveEnabled(true)">开启节能</button><button class="dual-btn" id="powerSaveOffBtn" onclick="setPowerSaveEnabled(false)">关闭节能</button></div><div class="fishing-setting-info">• 开启：钓鱼中15分钟未收到音频信号则自动退出钓鱼模式<br>• 关闭：永不自动退出，只能手动退出钓鱼模式</div></div>
+                    <div class="other-setting-item"><div class="other-setting-title"><span>换人速度 🚀</span></div><div class="other-setting-value" id="changePersonSpeedDisplay">稳定</div><div class="other-setting-buttons"><button class="other-setting-btn" id="changePersonFastBtn" onclick="setChangePersonSpeedMode(true)">快速</button><button class="other-setting-btn" id="changePersonSlowBtn" onclick="setChangePersonSpeedMode(false)">稳定</button></div><div class="fishing-setting-info">• 老电脑建议选择“稳定”</div></div>
+                </div>
+            </div>
+            
+            <!-- 键位自定义设置模块 -->
+            <div class="section">
+                <h2 class="section-title">⌨️ 键位自定义设置</h2>
+                <div class="keymap-table-container">
+                    <table class="keymap-table" id="keymapTable">
+                        <thead>
+                            <tr><th>功能</th><th>默认键位</th><th>开启状态</th><th>替换键位</th><th>修饰键</th><th>操作</th></tr>
+                        </thead>
+                        <tbody id="keymapTableBody">
+                            <tr><td colspan="6" class="keymap-loading">加载中......</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="keymap-reset-all-btn" id="resetAllKeymapBtn">重置所有键位设置为默认值</button>
+            </div>
+            
+            <!-- 高级选项模块 -->
+            <div class="section">
+                <h2 class="section-title">🔧 高级选项</h2>
+                <div class="advanced-options">
+                    <div class="advanced-title"><span>🏷️ 设备名称设置</span></div>
+                    <div class="device-name-section"><span class="device-name-label">设备名称：</span><input type="text" class="device-name-input" id="newDeviceNameInput" maxlength="30" placeholder="请输入英文、数字或字符，最长30个" value="--"><div class="device-name-buttons"><button class="adv-btn adv-btn-primary" onclick="setDeviceName()">保存设备名称</button><button class="adv-btn adv-btn-default" onclick="resetDeviceName()">恢复默认名称</button></div></div>
+                    <div class="advanced-title" style="margin-top: 30px;"><span>✏️ 修改设备信息</span></div>
+                    <div class="device-info-section"><div class="device-edit-grid"><div class="device-edit-field"><div class="device-edit-label">VID (16进制，如 0x1234)</div><input type="text" class="device-edit-input" id="editVID" placeholder="0xFFFF" maxlength="6"></div><div class="device-edit-field"><div class="device-edit-label">PID (16进制，如 0x5678)</div><input type="text" class="device-edit-input" id="editPID" placeholder="0xFFFF" maxlength="6"></div><div class="device-edit-field"><div class="device-edit-label">制造商</div><input type="text" class="device-edit-input" id="editManufacturer" maxlength="30" placeholder="制造商名称"></div></div><div class="device-info-buttons"><button class="dev-info-btn dev-info-btn-save" onclick="saveDeviceInfo()">💾 保存设备信息</button><button class="dev-info-btn dev-info-btn-reset" onclick="resetDeviceInfo()">🔄 恢复默认信息</button><button class="dev-info-btn dev-info-btn-random" onclick="randomDeviceInfo()">🎲 随机设备信息</button><button class="dev-info-btn dev-info-btn-refresh" onclick="refreshDeviceInfo()">🔄 刷新设备信息</button></div></div>
+                </div>
+                <div class="adv-note" style="margin-top: 15px;">📌 提示：修改VID/PID/设备名称后，需要重启设备才能生效。</div>
+            </div>
+        </div>
+    </div>                
+
+    <div id="taskbar-indicator" class="taskbar-hidden">
+        <div class="taskbar-left"><div class="taskbar-title">🎣 钓鱼助手</div><div class="taskbar-countdown" id="taskbarCountdown">--:--:--</div><div class="taskbar-person" id="taskbarPerson">--/--</div></div>
+        <div class="taskbar-status"><span id="taskbarStatus">设备未连接</span><button class="taskbar-reset-btn" id="taskbarResetAllBtn">全部恢复默认</button><button class="taskbar-reset-btn" id="taskbarExportConfigBtn" style="background: #17a2b8;">导出配置</button><button class="taskbar-reset-btn" id="taskbarImportConfigBtn" style="background: #ffc107; color:#333;">导入配置</button><button class="taskbar-reset-btn" id="taskbarBootselBtn" style="background: #dc3545;">进入刷机模式</button></div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    <div class="save-delay" id="saveDelay"></div>
+    <input type="file" id="importFileInput" accept=".txt" style="display: none;">
+    
+    <!-- 初始化进度弹窗 -->
+    <div id="initProgress" class="init-progress hidden">
+        <div class="progress-title">正在初始化设备...</div>
+        <div class="progress-steps"><div class="progress-step" id="step_device_info"><span class="step-icon">⏳</span><span>读取设备信息</span></div><div class="progress-step" id="step_settings"><span class="step-icon">⏳</span><span>读取系统设置</span></div><div class="progress-step" id="step_fight"><span class="step-icon">⏳</span><span>读取打怪设置</span></div><div class="progress-step" id="step_fishing"><span class="step-icon">⏳</span><span>读取钓鱼设置</span></div><div class="progress-step" id="step_keymap"><span class="step-icon">⏳</span><span>读取键位映射</span></div><div class="progress-step" id="step_lock"><span class="step-icon">⏳</span><span>读取锁键控制</span></div></div>
+        <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <script>
+        // ==================== Web 代码 ====================
+        let device = null;
+        let isConnected = false;
+        let isInitializing = false;
+        let settings = { time1h: null, time2h: null, time3h: null, time4h: null, currentMode: 0, cycleEnabled: false, version: 1 };
+        let status = { hours: 0, minutes: 0, seconds: 0, modeActive: 0, fishingMode: false, fightingMode: false, fishingModeType: -1, powerSaveEnabled: false };
+        let cyclePersonCount = -1;
+        let currentPerson = 0;
+        let fightSettings = { f5Time: null, f6Time: null, f7Time: null, f9Time: null, spaceTime: null };
+        let fishingSettings = { f11Interval: null, f8Cycle: null, speedModeEnabled: null, powerSaveEnabled: null, changePersonSpeedMode: null };
+        let lockControls = { capsLock: null, numLock: null, scrollLock: null };
+        let currentDeviceNameStr = "";
+        let deviceVid = null;
+        let devicePid = null;
+        let deviceManufacturer = null;
+        
+        // 键位数据和开启状态 - 更新为对象数组
+        let keymapData = [
+            { field: "f3", keycode: null, modifier: null },
+            { field: "f4", keycode: null, modifier: null },
+            { field: "f5", keycode: null, modifier: null },
+            { field: "f6", keycode: null, modifier: null },
+            { field: "f7", keycode: null, modifier: null },
+            { field: "f9_fight", keycode: null, modifier: null },
+            { field: "f8", keycode: null, modifier: null },
+            { field: "f9_fish", keycode: null, modifier: null },
+            { field: "f10", keycode: null, modifier: null },
+            { field: "f11", keycode: null, modifier: null },
+            { field: "f12", keycode: null, modifier: null },
+            { field: "space", keycode: null, modifier: null },
+            { field: "f11_jump", keycode: null, modifier: null }
+        ];
+        
+        let keymapEnabled = {
+            f3: true, f4: true, f5: true, f6: true, f7: true,
+            f9_fight: true, f8: true, f9_fish: true, f10: true,
+            f11: true, f12: true, space: true, f11_jump: true
+        };
+        
+        let dataLoaded = { deviceInfo: false, settings: false, fight: false, fishing: false, keymap: false, lock: false };
+        
+        const manufacturerDatabase = [
+            { name: "罗技", vid: 0x046D, pidMin: 0xC000, pidMax: 0xCFFF, enName: "Logitech" },
+            { name: "微软", vid: 0x045E, pidMin: 0x0700, pidMax: 0x07FF, enName: "Microsoft" },
+            { name: "戴尔", vid: 0x413C, pidMin: 0x2000, pidMax: 0x20FF, enName: "Dell" },
+            { name: "惠普", vid: 0x03F0, pidMin: 0x0A00, pidMax: 0x0AFF, enName: "HP" },
+            { name: "苹果", vid: 0x05AC, pidMin: 0x0200, pidMax: 0x02FF, enName: "Apple" },
+            { name: "联想", vid: 0x17EF, pidMin: 0x6000, pidMax: 0x60FF, enName: "Lenovo" },
+            { name: "雷蛇", vid: 0x1532, pidMin: 0x0200, pidMax: 0x02FF, enName: "Razer" },
+            { name: "赛睿", vid: 0x1038, pidMin: 0x1200, pidMax: 0x12FF, enName: "SteelSeries" },
+            { name: "海盗船", vid: 0x1B1C, pidMin: 0x1B00, pidMax: 0x1BFF, enName: "Corsair" },
+            { name: "双飞燕", vid: 0x09DA, pidMin: 0x0006, pidMax: 0x001A, enName: "A4Tech" },
+            { name: "樱桃", vid: 0x046A, pidMin: 0x0023, pidMax: 0x0023, enName: "Cherry" },
+            { name: "美加狮", vid: 0x0738, pidMin: 0x0200, pidMax: 0x04FF, enName: "Mad Catz" },
+            { name: "冰豹", vid: 0x1E7D, pidMin: 0x2E00, pidMax: 0x2EFF, enName: "Roccat" },
+            { name: "芝奇", vid: 0x0C6A, pidMin: 0x0500, pidMax: 0x05FF, enName: "G.Skill" },
+            { name: "酷冷至尊", vid: 0x2516, pidMin: 0x0001, pidMax: 0x00FF, enName: "Cooler Master" },
+            { name: "华硕", vid: 0x0B05, pidMin: 0x1700, pidMax: 0x17FF, enName: "ASUS" },
+            { name: "宏碁", vid: 0x0502, pidMin: 0x0100, pidMax: 0x01FF, enName: "Acer" },
+            { name: "明基", vid: 0x04A5, pidMin: 0x2000, pidMax: 0x20FF, enName: "BenQ" },
+            { name: "通用", vid: 0x0000, pidMin: 0x0000, pidMax: 0xFFFF, enName: "Generic" },
+            { name: "默认", vid: 0x1D6B, pidMin: 0x0100, pidMax: 0x01FF, enName: "Default" }
+        ];
+        
+        const functions = [
+            { name: "反传送", defaultKey: "F3", defaultModifier: "无", field: "f3", enableCmd: 0x80, keyCmd: 0x21 },
+            { name: "换人", defaultKey: "F4", defaultModifier: "无", field: "f4", enableCmd: 0x81, keyCmd: 0x22 },
+            { name: "打怪F5", defaultKey: "F5", defaultModifier: "无", field: "f5", enableCmd: 0x82, keyCmd: 0x23 },
+            { name: "打怪F6", defaultKey: "F6", defaultModifier: "无", field: "f6", enableCmd: 0x83, keyCmd: 0x24 },
+            { name: "打怪F7", defaultKey: "F7", defaultModifier: "无", field: "f7", enableCmd: 0x84, keyCmd: 0x25 },
+            { name: "打怪交互键", defaultKey: "F9", defaultModifier: "无", field: "f9_fight", enableCmd: 0x85, keyCmd: 0x26 },
+            { name: "钓鱼抛竿", defaultKey: "F8", defaultModifier: "无", field: "f8", enableCmd: 0x86, keyCmd: 0x27 },
+            { name: "钓鱼交互键", defaultKey: "F9", defaultModifier: "无", field: "f9_fish", enableCmd: 0x87, keyCmd: 0x28 },
+            { name: "鼠标悬停处互动", defaultKey: "F10", defaultModifier: "无", field: "f10", enableCmd: 0x88, keyCmd: 0x29 },
+            { name: "上饵", defaultKey: "F11", defaultModifier: "无", field: "f11", enableCmd: 0x89, keyCmd: 0x2A },
+            { name: "丢垃圾", defaultKey: "F12", defaultModifier: "无", field: "f12", enableCmd: 0x8A, keyCmd: 0x2B },
+            { name: "打怪跳跃", defaultKey: "空格", defaultModifier: "无", field: "space", enableCmd: 0x8B, keyCmd: 0x2C },
+            { name: "上饵后跳跃", defaultKey: "空格", defaultModifier: "无", field: "f11_jump", enableCmd: 0x8C, keyCmd: 0x30 }
+        ];
+        
+        // ★ 扩展键位选项：增加鼠标按键
+        const keyOptions = [
+            "无", "`", "-", "=", "[", "]", ";", "'", "\\", ",", ".", "/",
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+            "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+            "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
+            "空格", "回车", "退格", "Tab", "Insert", "Delete", "Home", "End", "PageUp", "PageDown",
+            "上", "下", "左", "右",
+            "小键盘/", "小键盘*", "小键盘-", "小键盘+", "小键盘Enter",
+            "小键盘0", "小键盘1", "小键盘2", "小键盘3", "小键盘4",
+            "小键盘5", "小键盘6", "小键盘7", "小键盘8", "小键盘9", "小键盘.",
+            "鼠标左键", "鼠标右键", "鼠标中键", "鼠标后退", "鼠标前进", "滚轮向上", "滚轮向下"
+        ];
+        
+        // ★ 修饰键选项
+        const modifierOptions = ["无", "Win", "Ctrl", "Shift", "Alt"];
+        
+        // ★ 修饰键到HID掩码的映射
+        const modifierToMask = {
+            "无": 0x00,
+            "Win": 0x08,  // Left GUI
+            "Ctrl": 0x01, // Left Control
+            "Shift": 0x02, // Left Shift
+            "Alt": 0x04   // Left Alt
+        };
+        
+        // ★ 扩展HID映射：支持鼠标按键
+        const hidToKeyName = {
+            0x00: "无", 0x2D: "-", 0x2E: "=", 0x35: "`", 0x2F: "[", 0x30: "]", 0x33: ";", 0x34: "'", 0x31: "\\", 0x36: ",", 0x37: ".", 0x38: "/",
+            0x1E: "1", 0x1F: "2", 0x20: "3", 0x21: "4", 0x22: "5", 0x23: "6", 0x24: "7", 0x25: "8", 0x26: "9", 0x27: "0",
+            0x04: "A", 0x05: "B", 0x06: "C", 0x07: "D", 0x08: "E", 0x09: "F", 0x0A: "G", 0x0B: "H", 0x0C: "I", 0x0D: "J",
+            0x0E: "K", 0x0F: "L", 0x10: "M", 0x11: "N", 0x12: "O", 0x13: "P", 0x14: "Q", 0x15: "R", 0x16: "S", 0x17: "T",
+            0x18: "U", 0x19: "V", 0x1A: "W", 0x1B: "X", 0x1C: "Y", 0x1D: "Z",
+            0x3A: "F1", 0x3B: "F2", 0x3C: "F3", 0x3D: "F4", 0x3E: "F5", 0x3F: "F6", 0x40: "F7", 0x41: "F8", 0x42: "F9", 0x43: "F10", 0x44: "F11", 0x45: "F12",
+            0x2C: "空格", 0x28: "回车", 0x2A: "退格", 0x2B: "Tab",
+            0x49: "Insert", 0x4C: "Delete", 0x4A: "Home", 0x4D: "End", 0x4B: "PageUp", 0x4E: "PageDown",
+            0x52: "上", 0x51: "下", 0x50: "左", 0x4F: "右",
+            0x54: "小键盘/", 0x55: "小键盘*", 0x56: "小键盘-", 0x57: "小键盘+", 0x58: "小键盘Enter",
+            0x62: "小键盘0", 0x59: "小键盘1", 0x5A: "小键盘2", 0x5B: "小键盘3", 0x5C: "小键盘4",
+            0x5D: "小键盘5", 0x5E: "小键盘6", 0x5F: "小键盘7", 0x60: "小键盘8", 0x61: "小键盘9", 0x63: "小键盘.",
+            0xF0: "鼠标左键", 0xF1: "鼠标右键", 0xF2: "鼠标中键", 0xF3: "鼠标后退", 0xF4: "鼠标前进", 0xF5: "滚轮向上", 0xF6: "滚轮向下"
+        };
+        
+        // ★ 扩展键名到HID映射
+        const keyNameToHid = {
+            "无": 0x00, "-": 0x2D, "=": 0x2E, "`": 0x35, "[": 0x2F, "]": 0x30, ";": 0x33, "'": 0x34, "\\": 0x31, ",": 0x36, ".": 0x37, "/": 0x38,
+            "1": 0x1E, "2": 0x1F, "3": 0x20, "4": 0x21, "5": 0x22, "6": 0x23, "7": 0x24, "8": 0x25, "9": 0x26, "0": 0x27,
+            "A": 0x04, "B": 0x05, "C": 0x06, "D": 0x07, "E": 0x08, "F": 0x09, "G": 0x0A, "H": 0x0B, "I": 0x0C, "J": 0x0D,
+            "K": 0x0E, "L": 0x0F, "M": 0x10, "N": 0x11, "O": 0x12, "P": 0x13, "Q": 0x14, "R": 0x15, "S": 0x16, "T": 0x17,
+            "U": 0x18, "V": 0x19, "W": 0x1A, "X": 0x1B, "Y": 0x1C, "Z": 0x1D,
+            "F1": 0x3A, "F2": 0x3B, "F3": 0x3C, "F4": 0x3D, "F5": 0x3E, "F6": 0x3F, "F7": 0x40, "F8": 0x41, "F9": 0x42, "F10": 0x43, "F11": 0x44, "F12": 0x45,
+            "空格": 0x2C, "回车": 0x28, "退格": 0x2A, "Tab": 0x2B,
+            "Insert": 0x49, "Delete": 0x4C, "Home": 0x4A, "End": 0x4D, "PageUp": 0x4B, "PageDown": 0x4E,
+            "上": 0x52, "下": 0x51, "左": 0x50, "右": 0x4F,
+            "小键盘/": 0x54, "小键盘*": 0x55, "小键盘-": 0x56, "小键盘+": 0x57, "小键盘Enter": 0x58,
+            "小键盘0": 0x62, "小键盘1": 0x59, "小键盘2": 0x5A, "小键盘3": 0x5B, "小键盘4": 0x5C,
+            "小键盘5": 0x5D, "小键盘6": 0x5E, "小键盘7": 0x5F, "小键盘8": 0x60, "小键盘9": 0x61, "小键盘.": 0x63,
+            "鼠标左键": 0xF0, "鼠标右键": 0xF1, "鼠标中键": 0xF2, "鼠标后退": 0xF3, "鼠标前进": 0xF4, "滚轮向上": 0xF5, "滚轮向下": 0xF6
+        };
+        
+        // ★ 反向映射：HID到修饰键名称
+        const hidToModifierName = {};
+        for (const [name, mask] of Object.entries(modifierToMask)) {
+            hidToModifierName[mask] = name;
+        }
+        
+        const DEFAULT_TIME_1H = 60;
+        const DEFAULT_TIME_2H = 120;
+        const DEFAULT_TIME_3H = 180;
+        const DEFAULT_TIME_4H = 240;
+        const DEFAULT_PERSON_COUNT = 0;
+        const DEFAULT_FISHING_MODE = 0;
+        const DEFAULT_FIGHT_F5 = 300;
+        const DEFAULT_FIGHT_F6 = 8;
+        const DEFAULT_FIGHT_F7 = 50;
+        const DEFAULT_FIGHT_F9 = 12;
+        const DEFAULT_FIGHT_SPACE = 300;
+        const DEFAULT_FISHING_F11 = 610;
+        const DEFAULT_FISHING_F8 = 30;
+        const DEFAULT_SPEED_MODE_ENABLED = false;
+        const DEFAULT_POWER_SAVE_ENABLED = false;
+        const DEFAULT_CAPSLOCK_CONTROL_ENABLED = true;
+        const DEFAULT_NUMLOCK_CONTROL_ENABLED = true;
+        const DEFAULT_SCROLLLOCK_CONTROL_ENABLED = true;
+        const DEFAULT_CHANGE_PERSON_SPEED_MODE = false;
+        
+        let updateInterval = null;
+        let statusInterval = null;
+        let lastCommandTime = 0;
+        let lastResponseTime = 0;
+        let settingReadTimeout = null;
+        
+        // DOM元素
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const notification = document.getElementById('notification');
+        const saveDelay = document.getElementById('saveDelay');
+        const personDisplay = document.getElementById('personDisplay');
+        const cyclePersonCountElement = document.getElementById('cyclePersonCount');
+        const currentPersonElement = document.getElementById('currentPerson');
+        const speedModeStatus = document.getElementById('speedModeStatus');
+        const powerSaveStatus = document.getElementById('powerSaveStatus');
+        const changePersonSpeedStatus = document.getElementById('changePersonSpeedStatus');
+        const deviceNameStatusValue = document.getElementById('deviceNameStatusValue');
+        
+        const classicModeBtn = document.getElementById('classicModeBtn');
+        const retailModeBtn = document.getElementById('retailModeBtn');
+        const startFishingBtn = document.getElementById('startFishingBtn');
+        const stopFishingBtn = document.getElementById('stopFishingBtn');
+        const startFightingBtn = document.getElementById('startFightingBtn');
+        const stopFightingBtn = document.getElementById('stopFightingBtn');
+        const speedModeFastBtn = document.getElementById('speedModeFastBtn');
+        const speedModeSlowBtn = document.getElementById('speedModeSlowBtn');
+        const speedModeDisplayValue = document.getElementById('speedModeDisplayValue');
+        const powerSaveOnBtn = document.getElementById('powerSaveOnBtn');
+        const powerSaveOffBtn = document.getElementById('powerSaveOffBtn');
+        const powerSaveDisplayValue = document.getElementById('powerSaveDisplayValue');
+        const changePersonFastBtn = document.getElementById('changePersonFastBtn');
+        const changePersonSlowBtn = document.getElementById('changePersonSlowBtn');
+        const changePersonSpeedDisplay = document.getElementById('changePersonSpeedDisplay');
+        
+        const capslockDisplay = document.getElementById('capslockDisplay');
+        const numlockDisplay = document.getElementById('numlockDisplay');
+        const scrolllockDisplay = document.getElementById('scrolllockDisplay');
+        const capslockOnBtn = document.getElementById('capslockOnBtn');
+        const capslockOffBtn = document.getElementById('capslockOffBtn');
+        const numlockOnBtn = document.getElementById('numlockOnBtn');
+        const numlockOffBtn = document.getElementById('numlockOffBtn');
+        const scrolllockOnBtn = document.getElementById('scrolllockOnBtn');
+        const scrolllockOffBtn = document.getElementById('scrolllockOffBtn');
+        
+        const taskbarIndicator = document.getElementById('taskbar-indicator');
+        const taskbarCountdown = document.getElementById('taskbarCountdown');
+        const taskbarPerson = document.getElementById('taskbarPerson');
+        const taskbarStatus = document.getElementById('taskbarStatus');
+        const taskbarResetAllBtn = document.getElementById('taskbarResetAllBtn');
+        const taskbarExportConfigBtn = document.getElementById('taskbarExportConfigBtn');
+        const taskbarImportConfigBtn = document.getElementById('taskbarImportConfigBtn');
+        const taskbarBootselBtn = document.getElementById('taskbarBootselBtn');
+        const importFileInput = document.getElementById('importFileInput');
+        const initProgress = document.getElementById('initProgress');
+        const progressBar = document.getElementById('progressBar');
+        
+        const stepDeviceInfo = document.getElementById('step_device_info');
+        const stepSettings = document.getElementById('step_settings');
+        const stepFight = document.getElementById('step_fight');
+        const stepFishing = document.getElementById('step_fishing');
+        const stepKeymap = document.getElementById('step_keymap');
+        const stepLock = document.getElementById('step_lock');
+        const steps = [stepDeviceInfo, stepSettings, stepFight, stepFishing, stepKeymap, stepLock];
+        
+        function updateProgress(stepIndex, success) {
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                step.classList.remove('active', 'completed', 'failed');
+                if (i < stepIndex) { step.classList.add('completed'); step.querySelector('.step-icon').textContent = '✓'; }
+                else if (i === stepIndex) { step.classList.add('active'); step.querySelector('.step-icon').textContent = '⏳'; }
+                else { step.querySelector('.step-icon').textContent = '○'; }
+            }
+            if (stepIndex < steps.length && !success) { steps[stepIndex].classList.add('failed'); steps[stepIndex].querySelector('.step-icon').textContent = '✗'; }
+            progressBar.style.width = ((stepIndex) / steps.length * 100) + '%';
+        }
+        
+        function showProgress() { initProgress.classList.remove('hidden'); updateProgress(0, true); }
+        function hideProgress() { initProgress.classList.add('hidden'); }
+        
+        function setKeymapUIEnabled(enabled) {
+            const tbody = document.getElementById('keymapTableBody');
+            if (tbody) {
+                const selects = tbody.querySelectorAll('select');
+                const saveBtns = tbody.querySelectorAll('.keymap-save-btn');
+                const resetBtns = tbody.querySelectorAll('.keymap-reset-btn');
+                const toggleSwitches = tbody.querySelectorAll('.toggle-switch');
+                selects.forEach(select => select.disabled = !enabled);
+                saveBtns.forEach(btn => btn.disabled = !enabled);
+                resetBtns.forEach(btn => btn.disabled = !enabled);
+                toggleSwitches.forEach(toggle => { if (!enabled) toggle.classList.add('disabled'); else toggle.classList.remove('disabled'); });
+            }
+            document.getElementById('resetAllKeymapBtn').disabled = !enabled;
+        }
+        
+        // 渲染键位表格
+        function renderKeymapTable() {
+            const tbody = document.getElementById('keymapTableBody');
+            if (!tbody) return;
+            
+            let html = '';
+            for (let i = 0; i < functions.length; i++) {
+                const func = functions[i];
+                const data = keymapData[i];
+                let currentKey = func.defaultKey;
+                let currentModifier = func.defaultModifier;
+                
+                if (data.keycode !== null && hidToKeyName[data.keycode]) {
+                    currentKey = hidToKeyName[data.keycode];
+                }
+                if (data.modifier !== null && hidToModifierName[data.modifier]) {
+                    currentModifier = hidToModifierName[data.modifier];
+                }
+                
+                const isEnabled = (keymapEnabled[func.field] !== undefined && keymapEnabled[func.field] !== null) ? keymapEnabled[func.field] : true;
+                const isDataReady = isConnected && dataLoaded.keymap;
+                
+                let keyOptionsHtml = '';
+                for (const opt of keyOptions) {
+                    const selected = (currentKey === opt) ? 'selected' : '';
+                    keyOptionsHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
+                }
+                
+                let modifierOptionsHtml = '';
+                for (const mod of modifierOptions) {
+                    const selected = (currentModifier === mod) ? 'selected' : '';
+                    modifierOptionsHtml += `<option value="${mod}" ${selected}>${mod}</option>`;
+                }
+                
+                html += `
+                    <tr data-field="${func.field}" data-default="${func.defaultKey}" data-default-modifier="${func.defaultModifier}">
+                        <td>${func.name}</td>
+                        <td>${func.defaultKey}</td>
+                        <td>
+                            <div class="toggle-switch ${isEnabled ? 'active' : ''} ${!isDataReady ? 'disabled' : ''}" onclick="${isDataReady ? `toggleKeymapEnable('${func.field}')` : ''}" id="toggle_${func.field}">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <select class="keymap-select" id="select_key_${func.field}" ${!isDataReady ? 'disabled' : ''}>
+                                ${keyOptionsHtml}
+                            </select>
+                        </td>
+                        <td>
+                            <select class="keymap-modifier-select" id="select_mod_${func.field}" ${!isDataReady ? 'disabled' : ''}>
+                                ${modifierOptionsHtml}
+                            </select>
+                        </td>
+                        <td>
+                            <button class="keymap-action-btn keymap-save-btn" onclick="saveSingleKeymap('${func.field}')" ${!isDataReady ? 'disabled' : ''}>确认保存</button>
+                            <button class="keymap-action-btn keymap-reset-btn" onclick="resetSingleKeymap('${func.field}')" ${!isDataReady ? 'disabled' : ''}>恢复默认</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            tbody.innerHTML = html;
+        }
+        
+        function updateKeymapToggleUI(field, isEnabled) {
+            const toggleDiv = document.getElementById(`toggle_${field}`);
+            if (toggleDiv) {
+                if (isEnabled) toggleDiv.classList.add('active');
+                else toggleDiv.classList.remove('active');
+            }
+        }
+        
+        // 切换键位开关
+        async function toggleKeymapEnable(field) {
+            if (!isConnected || !dataLoaded.keymap) { showNotification('请等待设备初始化完成', 'warning'); return; }
+            const newState = !keymapEnabled[field];
+            const func = functions.find(f => f.field === field);
+            if (!func) return;
+            
+            keymapEnabled[field] = newState;
+            updateKeymapToggleUI(field, newState);
+            
+            const success = await sendControlCommand(func.enableCmd, newState ? 1 : 0);
+            if (success) showNotification(`${func.name} 已${newState ? '开启' : '关闭'}`, 'success');
+            else {
+                keymapEnabled[field] = !newState;
+                updateKeymapToggleUI(field, !newState);
+                showNotification(`${func.name} 切换失败`, 'error');
+            }
+        }
+        
+        // 保存单个键位（包含修饰键）
+        async function saveSingleKeymap(field) {
+            if (!isConnected || !dataLoaded.keymap) { showNotification('请等待设备初始化完成', 'warning'); return; }
+            const keySelect = document.getElementById(`select_key_${field}`);
+            const modSelect = document.getElementById(`select_mod_${field}`);
+            const selectedKey = keySelect.value;
+            const selectedModifier = modSelect.value;
+            const hidCode = keyNameToHid[selectedKey];
+            const modMask = modifierToMask[selectedModifier];
+            
+            if (hidCode === undefined) { showNotification('无效的键位选择', 'error'); return; }
+            
+            const func = functions.find(f => f.field === field);
+            if (!func) return;
+            
+            // 发送键码和修饰键 (value = keycode, value2 = modifier)
+            const success = await sendControlCommandWithTwoValues(func.keyCmd, hidCode, modMask);
+            if (success) {
+                const idx = keymapData.findIndex(d => d.field === field);
+                if (idx !== -1) {
+                    keymapData[idx].keycode = hidCode;
+                    keymapData[idx].modifier = modMask;
+                }
+                showNotification(`${func.name} 已保存为 ${selectedKey}${selectedModifier !== '无' ? ' + ' + selectedModifier : ''}`, 'success');
+                showSaveDelay();
+            }
+        }
+        
+        // 恢复单个键位默认
+        async function resetSingleKeymap(field) {
+            if (!isConnected || !dataLoaded.keymap) { showNotification('请等待设备初始化完成', 'warning'); return; }
+            const func = functions.find(f => f.field === field);
+            const defaultKey = func.defaultKey;
+            const defaultModifier = func.defaultModifier || '无';
+            const hidCode = keyNameToHid[defaultKey];
+            const modMask = modifierToMask[defaultModifier];
+            
+            const success = await sendControlCommandWithTwoValues(func.keyCmd, hidCode, modMask);
+            if (success) {
+                const idx = keymapData.findIndex(d => d.field === field);
+                if (idx !== -1) {
+                    keymapData[idx].keycode = hidCode;
+                    keymapData[idx].modifier = modMask;
+                }
+                showNotification(`${func.name} 已恢复为默认键位 ${defaultKey}${defaultModifier !== '无' ? ' + ' + defaultModifier : ''}`, 'success');
+                renderKeymapTable();
+            }
+        }
+        
+        // 重置所有键位
+        async function resetAllKeymap() {
+            if (!isConnected || !dataLoaded.keymap) { showNotification('请等待设备初始化完成', 'warning'); return; }
+            if (!confirm('确定要重置所有键位设置为默认值吗？')) return;
+            
+            const success = await sendControlCommand(0x2E, 0);
+            if (success) {
+                for (let i = 0; i < functions.length; i++) {
+                    const func = functions[i];
+                    keymapData[i].keycode = keyNameToHid[func.defaultKey];
+                    keymapData[i].modifier = modifierToMask[func.defaultModifier || '无'];
+                    keymapEnabled[func.field] = true;
+                }
+                renderKeymapTable();
+                showNotification('所有键位已恢复为默认值', 'success');
+                showSaveDelay();
+            }
+        }
+        
+        // 重置所有设置
+        async function resetAllToDefault() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (!confirm('确定要将所有设置恢复为默认值吗？\n（包括：换人时间、打怪设置、钓鱼设置、循环人数、键位设置、钓鱼速度、节能模式、锁键控制、换人速度）')) return;
+            
+            showNotification('正在重置所有设置为默认值...', 'info');
+            await sendControlCommand(0x07, 0);
+            await sendControlCommand(0x16, 0);
+            await sendControlCommand(0x19, 0);
+            await sendControlCommand(0x0E, 0);
+            await sendControlCommand(0x09, 0);
+            await sendControlCommand(0x2E, 0);
+            await sendControlCommand(0x1D, 0);
+            await sendControlCommand(0x1F, 0);
+            await sendControlCommand(0x0D, 0);
+            await sendControlCommand(0x40, 1);
+            await sendControlCommand(0x41, 1);
+            await sendControlCommand(0x42, 1);
+            await sendControlCommand(0x90, 0);
+            
+            setTimeout(() => {
+                initializeDeviceSettings();
+                showNotification('所有设置已恢复为默认值', 'success');
+            }, 800);
+        }
+        
+        // 发送带两个值的控制命令
+        async function sendControlCommandWithTwoValues(command, value1, value2, retryCount = 0) {
+            if (!device || !device.opened || !isConnected) return false;
+            const now = Date.now();
+            if (now - lastCommandTime < 50) await new Promise(resolve => setTimeout(resolve, 50));
+            try {
+                const reportId = 5;
+                const data = new Uint8Array([command, value1 & 0xFF, (value1 >> 8) & 0xFF, value2 & 0xFF, (value2 >> 8) & 0xFF, 0,0,0,0,0,0,0,0,0,0,0]);
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('命令发送超时')), 1000));
+                await Promise.race([device.sendReport(reportId, data), timeoutPromise]);
+                lastCommandTime = Date.now();
+                return true;
+            } catch (error) {
+                console.error('发送命令失败:', error);
+                if (retryCount < 1) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    return await sendControlCommandWithTwoValues(command, value1, value2, retryCount + 1);
+                }
+                return false;
+            }
+        }
+        
+        async function sendControlCommand(command, value = 0, retryCount = 0) {
+            if (!device || !device.opened || !isConnected) return false;
+            const now = Date.now();
+            if (now - lastCommandTime < 50) await new Promise(resolve => setTimeout(resolve, 50));
+            try {
+                const reportId = 5;
+                const data = new Uint8Array([command, value & 0xFF, (value >> 8) & 0xFF, 0,0,0,0,0,0,0,0,0,0,0,0,0]);
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('命令发送超时')), 1000));
+                await Promise.race([device.sendReport(reportId, data), timeoutPromise]);
+                lastCommandTime = Date.now();
+                return true;
+            } catch (error) {
+                console.error('发送命令失败:', error);
+                if (retryCount < 1) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    return await sendControlCommand(command, value, retryCount + 1);
+                }
+                return false;
+            }
+        }
+        
+        // 串行初始化设备设置
+        async function initializeDeviceSettings() {
+            isInitializing = true;
+            showProgress();
+            setKeymapUIEnabled(false);
+            
+            dataLoaded = { deviceInfo: false, settings: false, fight: false, fishing: false, keymap: false, lock: false };
+            
+            try {
+                updateProgress(0, true);
+                await sendControlCommand(0x51, 0);
+                await new Promise(r => setTimeout(r, 200));
+                await sendControlCommand(0x54, 0);
+                await new Promise(r => setTimeout(r, 200));
+                await sendControlCommand(0x57, 0);
+                await new Promise(r => setTimeout(r, 200));
+                await sendControlCommand(0x5A, 0);
+                await new Promise(r => setTimeout(r, 300));
+                dataLoaded.deviceInfo = true;
+                
+                updateProgress(1, true);
+                await getSettings();
+                await new Promise(r => setTimeout(r, 300));
+                dataLoaded.settings = true;
+                
+                updateProgress(2, true);
+                await getFightSettings();
+                await new Promise(r => setTimeout(r, 300));
+                dataLoaded.fight = true;
+                
+                updateProgress(3, true);
+                await getFishingSettings();
+                await new Promise(r => setTimeout(r, 400));
+                await getChangePersonSpeedMode();
+                await new Promise(r => setTimeout(r, 200));
+                dataLoaded.fishing = true;
+                
+                updateProgress(4, true);
+                await getKeymapSettings();
+                await new Promise(r => setTimeout(r, 400));
+                dataLoaded.keymap = true;
+                
+                updateProgress(5, true);
+                await getLockControlSettings();
+                await new Promise(r => setTimeout(r, 200));
+                dataLoaded.lock = true;
+                
+                updateProgress(6, true);
+                renderKeymapTable();
+                setKeymapUIEnabled(true);
+                showNotification('设备初始化完成', 'success');
+                
+            } catch (error) {
+                console.error('初始化失败:', error);
+                showNotification('部分设置读取失败，请刷新重试', 'warning');
+            } finally {
+                setTimeout(() => hideProgress(), 1000);
+                isInitializing = false;
+            }
+        }
+        
+        async function getSettings() { return await sendControlCommand(1); }
+        async function getFightSettings() { if (isConnected) await sendControlCommand(0x15); }
+        async function getFishingSettings() { if (isConnected) await sendControlCommand(0x18); }
+        async function getKeymapSettings() { if (isConnected) await sendControlCommand(0x20); }
+        async function getLockControlSettings() { if (isConnected) await sendControlCommand(0x43); }
+        async function getChangePersonSpeedMode() { if (isConnected) await sendControlCommand(0x91); }
+        
+        async function setFishingMode(mode) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x0E, mode);
+            if (success) {
+                status.fishingModeType = mode;
+                updateFishingModeButtons();
+                document.getElementById('gameMode').textContent = mode === 0 ? '怀旧服' : '正式服';
+                showNotification(mode === 0 ? '已切换到怀旧服模式' : '已切换到正式服模式', 'success');
+            }
+        }
+        
+        async function setPersonCount(count) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(9, count);
+            if (success) {
+                cyclePersonCount = count;
+                updatePersonDisplay();
+                updateTaskbar();
+                updatePageTitle();
+                if (count === 0) showNotification('循环人数已设置为无限', 'success');
+                else if (count === 1) showNotification('单人模式已启用（下线再上线）', 'success');
+                else showNotification('循环人数已设置为 ' + count + ' 人', 'success');
+                updatePersonButtons();
+            }
+        }
+        
+        async function startFishing() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (status.fightingMode) { showNotification('请先关闭打怪模式', 'warning'); return; }
+            const success = await sendControlCommand(0x0B, 1);
+            if (success) showNotification('钓鱼模式已启动', 'success');
+        }
+        
+        async function stopFishing() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x0B, 0);
+            if (success) showNotification('钓鱼模式已关闭', 'success');
+        }
+        
+        async function startFighting() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (status.fishingMode) { showNotification('请先关闭钓鱼模式', 'warning'); return; }
+            const success = await sendControlCommand(0x0C, 1);
+            if (success) showNotification('打怪模式已启动', 'success');
+        }
+        
+        async function stopFighting() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x0C, 0);
+            if (success) showNotification('打怪模式已关闭', 'success');
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function setDefaultTime1h() { 
+            const value = 60; 
+            document.getElementById('time1hSlider').value = value; 
+            document.getElementById('time1hDisplay').textContent = value + '分钟'; 
+            const success = await sendControlCommand(2, value); 
+            if (success) { showNotification('绿灯模式时间已设为默认60分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function setDefaultTime2h() { 
+            const value = 120; 
+            document.getElementById('time2hSlider').value = value; 
+            document.getElementById('time2hDisplay').textContent = value + '分钟'; 
+            const success = await sendControlCommand(3, value); 
+            if (success) { showNotification('黄灯模式时间已设为默认120分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function setDefaultTime3h() { 
+            const value = 180; 
+            document.getElementById('time3hSlider').value = value; 
+            document.getElementById('time3hDisplay').textContent = value + '分钟'; 
+            const success = await sendControlCommand(4, value); 
+            if (success) { showNotification('红灯模式时间已设为默认180分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function setDefaultTime4h() { 
+            const value = 240; 
+            document.getElementById('time4hSlider').value = value; 
+            document.getElementById('time4hDisplay').textContent = value + '分钟'; 
+            const success = await sendControlCommand(5, value); 
+            if (success) { showNotification('紫灯模式时间已设为默认240分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function saveTime1h() { 
+            const value = parseInt(document.getElementById('time1hSlider').value); 
+            const success = await sendControlCommand(2, value); 
+            if (success) { showNotification('绿灯模式时间已保存为 ' + value + ' 分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function saveTime2h() { 
+            const value = parseInt(document.getElementById('time2hSlider').value); 
+            const success = await sendControlCommand(3, value); 
+            if (success) { showNotification('黄灯模式时间已保存为 ' + value + ' 分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function saveTime3h() { 
+            const value = parseInt(document.getElementById('time3hSlider').value); 
+            const success = await sendControlCommand(4, value); 
+            if (success) { showNotification('红灯模式时间已保存为 ' + value + ' 分钟', 'success'); showSaveDelay(); }
+        }
+        
+        // ★ 修改：添加 showNotification
+        async function saveTime4h() { 
+            const value = parseInt(document.getElementById('time4hSlider').value); 
+            const success = await sendControlCommand(5, value); 
+            if (success) { showNotification('紫灯模式时间已保存为 ' + value + ' 分钟', 'success'); showSaveDelay(); }
+        }
+        
+        async function saveFightF5() { const val = parseFloat(document.getElementById('fightF5Input').value); if (val >= 0.1 && val <= 3600) await sendControlCommand(0x10, Math.round(val * 10)); showSaveDelay(); }
+        async function saveFightF6() { const val = parseFloat(document.getElementById('fightF6Input').value); if (val >= 0.1 && val <= 3600) await sendControlCommand(0x11, Math.round(val * 10)); showSaveDelay(); }
+        async function saveFightF7() { const val = parseFloat(document.getElementById('fightF7Input').value); if (val >= 0.1 && val <= 3600) await sendControlCommand(0x12, Math.round(val * 10)); showSaveDelay(); }
+        async function saveFightF9() { const val = parseFloat(document.getElementById('fightF9Input').value); if (val >= 0.1 && val <= 3600) await sendControlCommand(0x13, Math.round(val * 10)); showSaveDelay(); }
+        async function saveFightSpace() { const val = parseFloat(document.getElementById('fightSpaceInput').value); if (val >= 0.1 && val <= 3600) await sendControlCommand(0x14, Math.round(val * 10)); showSaveDelay(); }
+        
+        function setDefaultFightF5() { document.getElementById('fightF5Input').value = (DEFAULT_FIGHT_F5 / 10).toFixed(1); updateFightSaveButtons(); }
+        function setDefaultFightF6() { document.getElementById('fightF6Input').value = (DEFAULT_FIGHT_F6 / 10).toFixed(1); updateFightSaveButtons(); }
+        function setDefaultFightF7() { document.getElementById('fightF7Input').value = (DEFAULT_FIGHT_F7 / 10).toFixed(1); updateFightSaveButtons(); }
+        function setDefaultFightF9() { document.getElementById('fightF9Input').value = (DEFAULT_FIGHT_F9 / 10).toFixed(1); updateFightSaveButtons(); }
+        function setDefaultFightSpace() { document.getElementById('fightSpaceInput').value = (DEFAULT_FIGHT_SPACE / 10).toFixed(1); updateFightSaveButtons(); }
+        
+        async function resetAllFightSettings() { if (!isConnected) return; if (confirm('确定要重置所有打怪设置为默认值吗？')) await sendControlCommand(0x16, 0); }
+        
+        async function saveFishingF11() { const val = parseInt(document.getElementById('fishingF11Input').value); if (val >= 1 && val <= 3600) await sendControlCommand(0x17, val); showSaveDelay(); }
+        async function saveFishingF8() { const val = parseFloat(document.getElementById('fishingF8Input').value); if (val >= 0.5 && val <= 60) await sendControlCommand(0x1B, Math.round(val * 1000)); showSaveDelay(); }
+        function setDefaultFishingF11() { document.getElementById('fishingF11Input').value = DEFAULT_FISHING_F11; updateFishingSaveButtons(); }
+        function setDefaultFishingF8() { document.getElementById('fishingF8Input').value = DEFAULT_FISHING_F8; updateFishingSaveButtons(); }
+        
+        async function setPowerSaveEnabled(enabled) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x1F, enabled ? 1 : 0);
+            if (success) { fishingSettings.powerSaveEnabled = enabled; updatePowerSaveButtons(); showNotification(`节能模式已${enabled ? '开启' : '关闭'}`, 'success'); }
+        }
+        
+        async function setSpeedModeEnabled(enabled) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x1D, enabled ? 1 : 0);
+            if (success) { fishingSettings.speedModeEnabled = enabled; updateSpeedModeButtons(); showNotification(`已切换至${enabled ? '快速' : '稳定'}钓鱼速度`, 'success'); }
+        }
+        
+        async function setCapsLockControl(enabled) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x40, enabled ? 1 : 0);
+            if (success) { lockControls.capsLock = enabled; updateLockControlButtons(); showNotification(`CapsLock控制已${enabled ? '开启' : '关闭'}`, 'success'); }
+        }
+        
+        async function setNumLockControl(enabled) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x41, enabled ? 1 : 0);
+            if (success) { lockControls.numLock = enabled; updateLockControlButtons(); showNotification(`NumLock控制已${enabled ? '开启' : '关闭'}`, 'success'); }
+        }
+        
+        async function setScrollLockControl(enabled) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x42, enabled ? 1 : 0);
+            if (success) { lockControls.scrollLock = enabled; updateLockControlButtons(); showNotification(`ScrollLock控制已${enabled ? '开启' : '关闭'}`, 'success'); }
+        }
+        
+        async function setChangePersonSpeedMode(fast) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x90, fast ? 1 : 0);
+            if (success) { fishingSettings.changePersonSpeedMode = fast; updateChangePersonSpeedButtons(); showNotification(`换人速度已切换至${fast ? '快速' : '稳定'}`, 'success'); }
+        }
+        
+        async function toggleCycleMode(mode) {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const success = await sendControlCommand(0x0D, mode);
+            if (success) {
+                const modeNames = ['无定时', '绿灯', '黄灯', '红灯', '紫灯'];
+                showNotification(`已切换到${modeNames[mode]}模式`, 'success');
+            }
+        }
+        
+        async function setDeviceName() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const input = document.getElementById('newDeviceNameInput');
+            const newName = input.value.trim();
+            if (!newName || newName.length === 0 || newName.length > 30) {
+                showNotification('设备名称长度应在1-30个字符', 'error');
+                input.classList.add('invalid');
+                return;
+            }
+            input.classList.remove('invalid');
+            
+            const data = new Uint8Array(3 + newName.length);
+            data[0] = 0x50;
+            data[1] = newName.length & 0xFF;
+            data[2] = (newName.length >> 8) & 0xFF;
+            for (let i = 0; i < newName.length; i++) { data[3 + i] = newName.charCodeAt(i); }
+            
+            try {
+                await device.sendReport(5, data);
+                showNotification('设备名称已保存，需要手动重启设备才能生效', 'success');
+                setTimeout(() => refreshDeviceInfo(), 500);
+            } catch (error) { showNotification('设置设备名称失败: ' + error.message, 'error'); }
+        }
+        
+        async function resetDeviceName() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const data = new Uint8Array([0x52, 0, 0]);
+            try {
+                await device.sendReport(5, data);
+                showNotification('设备名称已恢复为默认值，需要手动重启设备才能生效', 'success');
+                setTimeout(() => refreshDeviceInfo(), 500);
+            } catch (error) { showNotification('恢复默认设备名称失败: ' + error.message, 'error'); }
+        }
+        
+        async function sendSetVID(vid) { await device.sendReport(5, new Uint8Array([0x53, vid & 0xFF, (vid >> 8) & 0xFF, 0, 0])); }
+        async function sendSetPID(pid) { await device.sendReport(5, new Uint8Array([0x56, pid & 0xFF, (pid >> 8) & 0xFF, 0, 0])); }
+        async function sendSetManufacturer(manufacturer) {
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(manufacturer);
+            const data = new Uint8Array(3 + bytes.length);
+            data[0] = 0x59;
+            data[1] = bytes.length & 0xFF;
+            data[2] = (bytes.length >> 8) & 0xFF;
+            for (let i = 0; i < bytes.length; i++) data[3 + i] = bytes[i];
+            await device.sendReport(5, data);
+        }
+        
+        async function saveDeviceInfo() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            const vidInput = document.getElementById('editVID').value;
+            const pidInput = document.getElementById('editPID').value;
+            const manufacturer = document.getElementById('editManufacturer').value.trim();
+            
+            let vid, pid;
+            try {
+                vid = parseHexInput(vidInput);
+                if (isNaN(vid) || vid < 0 || vid > 0xFFFF) throw new Error();
+                pid = parseHexInput(pidInput);
+                if (isNaN(pid) || pid < 0 || pid > 0xFFFF) throw new Error();
+            } catch(e) { showNotification('VID和PID请输入有效的16进制数 (如 0x1234)', 'error'); return; }
+            if (manufacturer.length > 30) { showNotification('制造商名称长度不能超过30个字符', 'error'); return; }
+            
+            try {
+                showNotification('正在保存设备信息...', 'info');
+                await sendSetVID(vid);
+                await new Promise(r => setTimeout(r, 100));
+                await sendSetPID(pid);
+                await new Promise(r => setTimeout(r, 100));
+                await sendSetManufacturer(manufacturer);
+                
+                deviceVid = vid;
+                devicePid = pid;
+                deviceManufacturer = manufacturer;
+                updateAllDeviceInfoDisplay();
+                showNotification('设备信息已保存，需要手动重启设备才能生效', 'success');
+            } catch (error) { showNotification('保存设备信息失败: ' + error.message, 'error'); }
+        }
+        
+        async function resetDeviceInfo() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            try {
+                await device.sendReport(5, new Uint8Array([0x55, 0, 0]));
+                await new Promise(r => setTimeout(r, 50));
+                await device.sendReport(5, new Uint8Array([0x58, 0, 0]));
+                await new Promise(r => setTimeout(r, 50));
+                await device.sendReport(5, new Uint8Array([0x5B, 0, 0]));
+                showNotification('设备信息已恢复为默认值，需要手动重启设备才能生效', 'success');
+                setTimeout(() => refreshDeviceInfo(), 500);
+            } catch (error) { showNotification('恢复默认设备信息失败: ' + error.message, 'error'); }
+        }
+        
+        async function refreshDeviceInfo() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            showNotification('正在读取设备信息...', 'info');
+            try {
+                await sendControlCommand(0x51, 0);
+                await new Promise(r => setTimeout(r, 200));
+                await sendControlCommand(0x54, 0);
+                await new Promise(r => setTimeout(r, 200));
+                await sendControlCommand(0x57, 0);
+                await new Promise(r => setTimeout(r, 200));
+                await sendControlCommand(0x5A, 0);
+            } catch (error) { showNotification('读取设备信息失败', 'error'); }
+        }
+        
+        function saveWebPageToLocal() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `FishingHelper_WebConfig_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification('配置工具已保存到本地', 'success');
+        }
+        
+        function parseHexInput(value) {
+            let hexStr = value.trim();
+            if (hexStr.startsWith('0x') || hexStr.startsWith('0X')) { hexStr = hexStr.substring(2); }
+            return parseInt(hexStr, 16);
+        }
+        
+        function randomDeviceInfo() {
+            const manufacturer = manufacturerDatabase[Math.floor(Math.random() * manufacturerDatabase.length)];
+            const vid = manufacturer.vid;
+            const pidRange = manufacturer.pidMax - manufacturer.pidMin;
+            let pid;
+            if (pidRange === 0) pid = manufacturer.pidMin;
+            else pid = manufacturer.pidMin + Math.floor(Math.random() * (pidRange + 1));
+            const manufacturerName = manufacturer.enName;
+            
+            document.getElementById('editVID').value = '0x' + vid.toString(16).toUpperCase().padStart(4, '0');
+            document.getElementById('editPID').value = '0x' + pid.toString(16).toUpperCase().padStart(4, '0');
+            document.getElementById('editManufacturer').value = manufacturerName;
+            showNotification(`已随机选择：${manufacturer.name} (VID:0x${vid.toString(16).toUpperCase()}, PID:0x${pid.toString(16).toUpperCase()})`, 'success');
+        }
+        
+        function updateDeviceInfoDisplay() {
+            const vidElement = document.getElementById('vidValue');
+            const pidElement = document.getElementById('pidValue');
+            const manufacturerElement = document.getElementById('manufacturerValue');
+            
+            if (deviceVid !== null && deviceVid !== undefined) vidElement.textContent = '0x' + deviceVid.toString(16).toUpperCase().padStart(4, '0');
+            else vidElement.textContent = '--';
+            if (devicePid !== null && devicePid !== undefined) pidElement.textContent = '0x' + devicePid.toString(16).toUpperCase().padStart(4, '0');
+            else pidElement.textContent = '--';
+            if (deviceManufacturer !== null && deviceManufacturer !== "") manufacturerElement.textContent = deviceManufacturer;
+            else manufacturerElement.textContent = '--';
+        }
+        
+        function updateAllDeviceInfoDisplay() {
+            if (currentDeviceNameStr && currentDeviceNameStr !== "") {
+                document.getElementById('newDeviceNameInput').value = currentDeviceNameStr;
+                if (deviceNameStatusValue) deviceNameStatusValue.textContent = currentDeviceNameStr;
+            } else {
+                document.getElementById('newDeviceNameInput').value = '--';
+                if (deviceNameStatusValue) deviceNameStatusValue.textContent = '--';
+            }
+            updateDeviceInfoDisplay();
+            if (deviceVid !== null && deviceVid !== undefined) document.getElementById('editVID').value = '0x' + deviceVid.toString(16).toUpperCase().padStart(4, '0');
+            else document.getElementById('editVID').value = '';
+            if (devicePid !== null && devicePid !== undefined) document.getElementById('editPID').value = '0x' + devicePid.toString(16).toUpperCase().padStart(4, '0');
+            else document.getElementById('editPID').value = '';
+            if (deviceManufacturer !== null && deviceManufacturer !== undefined) document.getElementById('editManufacturer').value = deviceManufacturer;
+            else document.getElementById('editManufacturer').value = '';
+        }
+        
+        function updateSpeedModeButtons() {
+            const speedEnabled = fishingSettings.speedModeEnabled;
+            if (speedEnabled === null) {
+                speedModeFastBtn.className = 'dual-btn';
+                speedModeSlowBtn.className = 'dual-btn dual-btn-inactive';
+                speedModeDisplayValue.textContent = '稳定';
+                speedModeStatus.textContent = '稳定';
+            } else if (speedEnabled) {
+                speedModeFastBtn.className = 'dual-btn dual-btn-active';
+                speedModeSlowBtn.className = 'dual-btn';
+                speedModeDisplayValue.textContent = '快速';
+                speedModeStatus.textContent = '快速';
+            } else {
+                speedModeFastBtn.className = 'dual-btn';
+                speedModeSlowBtn.className = 'dual-btn dual-btn-inactive';
+                speedModeDisplayValue.textContent = '稳定';
+                speedModeStatus.textContent = '稳定';
+            }
+        }
+        
+        function updatePowerSaveButtons() {
+            const powerSave = fishingSettings.powerSaveEnabled;
+            if (powerSave === null) {
+                powerSaveOnBtn.className = 'dual-btn';
+                powerSaveOffBtn.className = 'dual-btn dual-btn-inactive';
+                powerSaveDisplayValue.textContent = '开启';
+                powerSaveStatus.textContent = '--';
+            } else if (powerSave) {
+                powerSaveOnBtn.className = 'dual-btn dual-btn-active';
+                powerSaveOffBtn.className = 'dual-btn';
+                powerSaveDisplayValue.textContent = '开启';
+                powerSaveStatus.textContent = '开启';
+            } else {
+                powerSaveOnBtn.className = 'dual-btn';
+                powerSaveOffBtn.className = 'dual-btn dual-btn-inactive';
+                powerSaveDisplayValue.textContent = '关闭';
+                powerSaveStatus.textContent = '关闭';
+            }
+        }
+        
+        function updateChangePersonSpeedButtons() {
+            const isFast = fishingSettings.changePersonSpeedMode === true;
+            if (fishingSettings.changePersonSpeedMode === null) {
+                changePersonFastBtn.className = 'other-setting-btn';
+                changePersonSlowBtn.className = 'other-setting-btn other-setting-btn-inactive';
+                changePersonSpeedDisplay.textContent = '稳定';
+                changePersonSpeedStatus.textContent = '--';
+            } else if (isFast) {
+                changePersonFastBtn.className = 'other-setting-btn other-setting-btn-active';
+                changePersonSlowBtn.className = 'other-setting-btn';
+                changePersonSpeedDisplay.textContent = '快速';
+                changePersonSpeedStatus.textContent = '快速';
+            } else {
+                changePersonFastBtn.className = 'other-setting-btn';
+                changePersonSlowBtn.className = 'other-setting-btn other-setting-btn-inactive';
+                changePersonSpeedDisplay.textContent = '稳定';
+                changePersonSpeedStatus.textContent = '稳定';
+            }
+        }
+        
+        function handleInputReport(event) {
+            const { data } = event;
+            const dataArray = new Uint8Array(data.buffer);
+            lastResponseTime = Date.now();
+            
+            if (dataArray[0] === 4 && dataArray.length >= 16) {
+                let reportType = dataArray[14];
+                let endFlag = dataArray[15];
+                
+                if (endFlag === 0x55) {
+                    const respType = dataArray[1];
+                    if (respType === 0x51) {
+                        let nameStr = "";
+                        for (let i = 2; i <= 13 && i < dataArray.length; i++) {
+                            if (dataArray[i] === 0) break;
+                            if (dataArray[i] >= 32 && dataArray[i] <= 126) nameStr += String.fromCharCode(dataArray[i]);
+                        }
+                        currentDeviceNameStr = nameStr || "未自定义";
+                        updateAllDeviceInfoDisplay();
+                        return;
+                    }
+                    if (respType === 0x54) { deviceVid = dataArray[2] | (dataArray[3] << 8); updateAllDeviceInfoDisplay(); return; }
+                    if (respType === 0x57) { devicePid = dataArray[2] | (dataArray[3] << 8); updateAllDeviceInfoDisplay(); return; }
+                    if (respType === 0x5A) {
+                        let manufacturerStr = "";
+                        for (let i = 2; i <= 13 && i < dataArray.length; i++) {
+                            if (dataArray[i] === 0) break;
+                            if (dataArray[i] >= 32 && dataArray[i] <= 126) manufacturerStr += String.fromCharCode(dataArray[i]);
+                        }
+                        deviceManufacturer = manufacturerStr || "";
+                        updateAllDeviceInfoDisplay();
+                        return;
+                    }
+                }
+                
+                if (endFlag === 0xCC && dataArray[14] === 0xAA) {
+                    fishingSettings.changePersonSpeedMode = (dataArray[1] === 1);
+                    updateChangePersonSpeedButtons();
+                    return;
+                }
+                
+                if (reportType !== 0xFD && reportType !== 0xFF && reportType !== 0xFE && reportType !== 0xFC && reportType !== 0xFA && reportType !== 0xFB) {
+                    reportType = dataArray[15];
+                }
+                
+                if (reportType === 0xFD) {
+                    status.hours = dataArray[1];
+                    status.minutes = dataArray[2];
+                    status.seconds = dataArray[3];
+                    status.modeActive = dataArray[4];
+                    status.fishingMode = dataArray[5] === 1;
+                    status.fightingMode = dataArray[6] === 1;
+                    status.fishingModeType = dataArray[7];
+                    cyclePersonCount = dataArray[8];
+                    currentPerson = dataArray[9];
+                    status.powerSaveEnabled = dataArray[14] === 1;
+                    updatePersonDisplay();
+                    updateStatusDisplay();
+                    updateTaskbar();
+                    updatePageTitle();
+                    updateControlButtons();
+                    updateFishingModeButtons();
+                    updatePowerSaveButtons();
+                }
+                else if (reportType === 0xFF) {
+                    settings.time1h = dataArray[1] | (dataArray[2] << 8);
+                    settings.time2h = dataArray[3] | (dataArray[4] << 8);
+                    settings.time3h = dataArray[5] | (dataArray[6] << 8);
+                    settings.time4h = dataArray[7] | (dataArray[8] << 8);
+                    status.fishingModeType = dataArray[14];
+                    updateSettingsDisplay();
+                    updateFishingModeButtons();
+                }
+                else if (reportType === 0xFE) {
+                    fightSettings.f5Time = dataArray[1] | (dataArray[2] << 8);
+                    fightSettings.f6Time = dataArray[3] | (dataArray[4] << 8);
+                    fightSettings.f7Time = dataArray[5] | (dataArray[6] << 8);
+                    fightSettings.f9Time = dataArray[7] | (dataArray[8] << 8);
+                    fightSettings.spaceTime = dataArray[9] | (dataArray[10] << 8);
+                    updateFightSettingsDisplay();
+                }
+                else if (reportType === 0xFC) {
+                    fishingSettings.f11Interval = dataArray[1] | (dataArray[2] << 8);
+                    fishingSettings.f8Cycle = dataArray[4] | (dataArray[5] << 8) | (dataArray[6] << 16);
+                    fishingSettings.speedModeEnabled = dataArray[8] === 1;
+                    fishingSettings.powerSaveEnabled = dataArray[9] === 1;
+                    updateFishingSettingsDisplay();
+                    updateSpeedModeButtons();
+                    updatePowerSaveButtons();
+                }
+                else if (reportType === 0xFB) {
+                    lockControls.capsLock = dataArray[1] === 1;
+                    lockControls.numLock = dataArray[2] === 1;
+                    lockControls.scrollLock = dataArray[3] === 1;
+                    updateLockControlButtons();
+                }
+            }
+            else if (dataArray[0] === 6 && dataArray.length >= 28) {
+                // 解析键位数据：每2字节一组 (keycode, modifier)
+                for (let i = 0; i < 13; i++) {
+                    const keycode = dataArray[1 + (i * 2)];
+                    const modifier = dataArray[2 + (i * 2)];
+                    if (i < keymapData.length) {
+                        keymapData[i].keycode = keycode;
+                        keymapData[i].modifier = modifier;
+                    }
+                }
+                // 开启状态存储在索引 27 到 39
+                for (let i = 0; i < 13; i++) {
+                    const field = functions[i] ? functions[i].field : null;
+                    if (field) {
+                        keymapEnabled[field] = dataArray[27 + i] === 1;
+                    }
+                }
+                console.log("键位数据已更新:", keymapData);
+                console.log("开关状态已更新:", keymapEnabled);
+                renderKeymapTable();
+            }
+        }
+        
+        class DeviceConnectionManager {
+            constructor() {
+                this.device = null;
+                this.isConnected = false;
+                this.heartbeatInterval = null;
+                this.isDeviceInitialized = false;
+                this.initRetryCount = 0;
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                if ('hid' in navigator) {
+                    navigator.hid.addEventListener('disconnect', this.handleDeviceDisconnect.bind(this));
+                    navigator.hid.addEventListener('connect', this.handleDeviceConnect.bind(this));
+                }
+            }
+            
+            async handleDeviceDisconnect(event) {
+                if (this.device && event.device.productId === this.device.productId && event.device.vendorId === this.device.vendorId) {
+                    await this.handleImmediateDisconnection();
+                }
+            }
+            
+            handleDeviceConnect(event) {
+                if (!this.isConnected) showNotification('检测到新设备，请点击"连接设备"按钮连接', 'info');
+            }
+            
+            async handleImmediateDisconnection() {
+                this.stopHeartbeat();
+                this.stopInitialization();
+                if (statusInterval) { clearInterval(statusInterval); statusInterval = null; }
+                if (this.device) { try { this.device.removeEventListener('inputreport', handleInputReport); } catch (error) {} }
+                this.isConnected = false;
+                this.isDeviceInitialized = false;
+                isConnected = false;
+                dataLoaded = { deviceInfo: false, settings: false, fight: false, fishing: false, keymap: false, lock: false };
+                statusIndicator.className = 'status-indicator';
+                statusText.textContent = '设备已断开';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                resetDisplay();
+                showNotification('设备连接已断开', 'warning');
+                try { if (this.device && this.device.opened) await this.device.close(); } catch (error) {}
+                this.device = null;
+                device = null;
+                updateControlButtons();
+                hideTaskbar();
+                document.title = "钓鱼助手 - 设备断开";
+                deviceVid = null; devicePid = null; deviceManufacturer = null; currentDeviceNameStr = "";
+                updateAllDeviceInfoDisplay();
+                setKeymapUIEnabled(false);
+            }
+            
+            startHeartbeat() {
+                this.stopHeartbeat();
+                this.heartbeatInterval = setInterval(async () => {
+                    if (this.isConnected && this.device) {
+                        try { await sendControlCommand(0x0A, 0); } catch (error) { await this.handleImmediateDisconnection(); }
+                    }
+                }, 2000);
+            }
+            
+            stopHeartbeat() { if (this.heartbeatInterval) { clearInterval(this.heartbeatInterval); this.heartbeatInterval = null; } }
+            
+            startDeviceInitialization() { this.isDeviceInitialized = false; this.initRetryCount = 0; setTimeout(() => { this.initializeDeviceSettings(); }, 500); }
+            stopInitialization() { this.isDeviceInitialized = false; this.initRetryCount = 0; if (settingReadTimeout) clearTimeout(settingReadTimeout); }
+            async initializeDeviceSettings() { await initializeDeviceSettings(); this.isDeviceInitialized = true; }
+        }
+        
+        const connectionManager = new DeviceConnectionManager();
+        
+        function checkWebHIDSupport() {
+            if (!('hid' in navigator)) { showNotification('您的浏览器不支持Web HID API', 'error'); connectBtn.disabled = true; return false; }
+            return true;
+        }
+        
+        async function connectDevice() {
+            if (!checkWebHIDSupport()) return;
+            try {
+                const devices = await navigator.hid.requestDevice({ filters: [{ usagePage: 0xFFD9, usage: 0x46 }] });
+                if (devices.length === 0) { showNotification('未找到符合要求的设备', 'warning'); return; }
+                
+                const selectedDevice = devices[0];
+                if (deviceNameStatusValue) deviceNameStatusValue.textContent = '加载中...';
+                if (!selectedDevice.opened) await selectedDevice.open();
+                
+                connectionManager.device = selectedDevice;
+                connectionManager.isConnected = true;
+                device = selectedDevice;
+                isConnected = true;
+                device.addEventListener('inputreport', handleInputReport);
+                connectionManager.startHeartbeat();
+                updateConnectionStatus();
+                showNotification('设备连接成功，正在读取设备信息...', 'success');
+                showTaskbar();
+                connectionManager.startDeviceInitialization();
+                startStatusUpdates();
+                updateControlButtons();
+                updateFishingModeButtons();
+                updatePowerSaveButtons();
+            } catch (error) {
+                console.error('连接设备失败:', error);
+                showNotification('连接设备失败: ' + error.message, 'error');
+                isConnected = false;
+                updateConnectionStatus();
+                updateControlButtons();
+            }
+        }
+        
+        async function disconnectDevice() {
+            await connectionManager.handleImmediateDisconnection();
+            showNotification('已手动断开设备', 'info');
+        }
+        
+        async function rebootToBootsel() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (confirm('确定要让设备重启并进入刷机模式吗？')) {
+                showNotification('正在重启设备进入刷机模式...', 'info');
+                await sendControlCommand(0x2F, 0);
+                showNotification('设备正在重启进入刷机模式', 'success');
+                setTimeout(() => connectionManager.handleImmediateDisconnection(), 1000);
+            }
+        }
+        
+        async function exportConfig() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            await getSettings();
+            await new Promise(r => setTimeout(r, 300));
+            await getFightSettings();
+            await new Promise(r => setTimeout(r, 300));
+            await getFishingSettings();
+            await new Promise(r => setTimeout(r, 300));
+            await getKeymapSettings();
+            await new Promise(r => setTimeout(r, 500));
+            await getChangePersonSpeedMode();
+            await new Promise(r => setTimeout(r, 200));
+            
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
+            
+            let configLines = [];
+            const gameModeStr = status.fishingModeType === 0 ? '怀旧服钓鱼模式' : (status.fishingModeType === 1 ? '正式服钓鱼模式' : '未设置');
+            configLines.push(`游戏模式=${gameModeStr}`);
+            const modeNames = ['无定时', '绿灯', '黄灯', '红灯', '紫灯'];
+            configLines.push(`当前灯色=${modeNames[status.modeActive] || '无定时'}`);
+            configLines.push(`绿灯时间(分钟)=${settings.time1h !== null ? settings.time1h : DEFAULT_TIME_1H}`);
+            configLines.push(`黄灯时间(分钟)=${settings.time2h !== null ? settings.time2h : DEFAULT_TIME_2H}`);
+            configLines.push(`红灯时间(分钟)=${settings.time3h !== null ? settings.time3h : DEFAULT_TIME_3H}`);
+            configLines.push(`紫灯时间(分钟)=${settings.time4h !== null ? settings.time4h : DEFAULT_TIME_4H}`);
+            const personStr = cyclePersonCount === 0 ? '无限' : (cyclePersonCount === 1 ? '1人(单人模式)' : `${cyclePersonCount}人`);
+            configLines.push(`循环人数=${personStr}`);
+            configLines.push(`钓鱼速度=${fishingSettings.speedModeEnabled !== null ? (fishingSettings.speedModeEnabled ? '快速' : '稳定') : '稳定'}`);
+            configLines.push(`节能模式=${fishingSettings.powerSaveEnabled !== null ? (fishingSettings.powerSaveEnabled ? '开启' : '关闭') : '关闭'}`);
+            configLines.push(`CapsLock控制=${lockControls.capsLock !== null ? (lockControls.capsLock ? '开启' : '关闭') : '开启'}`);
+            configLines.push(`NumLock控制=${lockControls.numLock !== null ? (lockControls.numLock ? '开启' : '关闭') : '开启'}`);
+            configLines.push(`ScrollLock控制=${lockControls.scrollLock !== null ? (lockControls.scrollLock ? '开启' : '关闭') : '开启'}`);
+            configLines.push(`换人速度=${fishingSettings.changePersonSpeedMode !== null ? (fishingSettings.changePersonSpeedMode ? '快速' : '稳定') : '稳定'}`);
+            configLines.push(`F11上饵间隔(秒)=${fishingSettings.f11Interval !== null ? fishingSettings.f11Interval : DEFAULT_FISHING_F11}`);
+            const f8Val = fishingSettings.f8Cycle !== null ? (fishingSettings.f8Cycle / 1000).toFixed(1) : DEFAULT_FISHING_F8;
+            configLines.push(`F8重新抛竿间隔(秒)=${f8Val}`);
+            configLines.push(`打怪F5间隔(秒)=${fightSettings.f5Time !== null ? (fightSettings.f5Time/10).toFixed(1) : (DEFAULT_FIGHT_F5/10).toFixed(1)}`);
+            configLines.push(`打怪F6间隔(秒)=${fightSettings.f6Time !== null ? (fightSettings.f6Time/10).toFixed(1) : (DEFAULT_FIGHT_F6/10).toFixed(1)}`);
+            configLines.push(`打怪F7间隔(秒)=${fightSettings.f7Time !== null ? (fightSettings.f7Time/10).toFixed(1) : (DEFAULT_FIGHT_F7/10).toFixed(1)}`);
+            configLines.push(`打怪F9间隔(秒)=${fightSettings.f9Time !== null ? (fightSettings.f9Time/10).toFixed(1) : (DEFAULT_FIGHT_F9/10).toFixed(1)}`);
+            configLines.push(`打怪空格间隔(秒)=${fightSettings.spaceTime !== null ? (fightSettings.spaceTime/10).toFixed(1) : (DEFAULT_FIGHT_SPACE/10).toFixed(1)}`);
+            for (let i = 0; i < functions.length; i++) {
+                const func = functions[i];
+                const data = keymapData[i];
+                let currentKey = func.defaultKey;
+                let currentMod = func.defaultModifier || '无';
+                if (data.keycode !== null && hidToKeyName[data.keycode]) currentKey = hidToKeyName[data.keycode];
+                if (data.modifier !== null && hidToModifierName[data.modifier]) currentMod = hidToModifierName[data.modifier];
+                configLines.push(`键位_${func.name}=${currentKey}`);
+                configLines.push(`键位_${func.name}_修饰键=${currentMod}`);
+                configLines.push(`键位_${func.name}_开启=${keymapEnabled[func.field] ? '开启' : '关闭'}`);
+            }
+            
+            const configText = configLines.join('\n');
+            const blob = new Blob([configText], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `FishingHelper_Config_${dateStr}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification('配置已导出', 'success');
+        }
+        
+        function importConfig() {
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            importFileInput.click();
+        }
+        
+        async function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const content = e.target.result;
+                const lines = content.split('\n');
+                const configMap = new Map();
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed.startsWith('#')) continue;
+                    const eqIndex = trimmed.indexOf('=');
+                    if (eqIndex === -1) continue;
+                    const key = trimmed.substring(0, eqIndex).trim();
+                    const value = trimmed.substring(eqIndex + 1).trim();
+                    configMap.set(key, value);
+                }
+                
+                showNotification('开始导入配置...', 'info');
+                
+                if (configMap.has('游戏模式')) {
+                    const modeStr = configMap.get('游戏模式');
+                    if (modeStr === '怀旧服钓鱼模式') await setFishingMode(0);
+                    else if (modeStr === '正式服钓鱼模式') await setFishingMode(1);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if (configMap.has('当前灯色')) {
+                    const lightStr = configMap.get('当前灯色');
+                    const lightMap = {'无定时':0, '绿灯':1, '黄灯':2, '红灯':3, '紫灯':4};
+                    if (lightMap[lightStr] !== undefined) await toggleCycleMode(lightMap[lightStr]);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if (configMap.has('绿灯时间(分钟)')) await sendControlCommand(2, parseInt(configMap.get('绿灯时间(分钟)')) || 60);
+                if (configMap.has('黄灯时间(分钟)')) await sendControlCommand(3, parseInt(configMap.get('黄灯时间(分钟)')) || 120);
+                if (configMap.has('红灯时间(分钟)')) await sendControlCommand(4, parseInt(configMap.get('红灯时间(分钟)')) || 180);
+                if (configMap.has('紫灯时间(分钟)')) await sendControlCommand(5, parseInt(configMap.get('紫灯时间(分钟)')) || 240);
+                await new Promise(r => setTimeout(r, 300));
+                if (configMap.has('循环人数')) {
+                    let personVal = 0;
+                    const personStr = configMap.get('循环人数');
+                    if (personStr === '无限') personVal = 0;
+                    else if (personStr === '1人(单人模式)') personVal = 1;
+                    else if (personStr.endsWith('人')) { const num = parseInt(personStr); if (!isNaN(num)) personVal = num; }
+                    await setPersonCount(personVal);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if (configMap.has('钓鱼速度')) await setSpeedModeEnabled(configMap.get('钓鱼速度') === '快速');
+                if (configMap.has('节能模式')) await setPowerSaveEnabled(configMap.get('节能模式') === '开启');
+                if (configMap.has('CapsLock控制')) await setCapsLockControl(configMap.get('CapsLock控制') === '开启');
+                if (configMap.has('NumLock控制')) await setNumLockControl(configMap.get('NumLock控制') === '开启');
+                if (configMap.has('ScrollLock控制')) await setScrollLockControl(configMap.get('ScrollLock控制') === '开启');
+                if (configMap.has('换人速度')) await setChangePersonSpeedMode(configMap.get('换人速度') === '快速');
+                if (configMap.has('F11上饵间隔(秒)')) {
+                    const val = parseInt(configMap.get('F11上饵间隔(秒)'));
+                    if (!isNaN(val) && val >= 1 && val <= 3600) await sendControlCommand(0x17, val);
+                }
+                if (configMap.has('F8重新抛竿间隔(秒)')) {
+                    const val = parseFloat(configMap.get('F8重新抛竿间隔(秒)'));
+                    if (!isNaN(val) && val >= 0.5 && val <= 60) await sendControlCommand(0x1B, Math.round(val * 1000));
+                }
+                if (configMap.has('打怪F5间隔(秒)')) {
+                    const val = parseFloat(configMap.get('打怪F5间隔(秒)'));
+                    if (!isNaN(val)) await sendControlCommand(0x10, Math.round(val * 10));
+                }
+                if (configMap.has('打怪F6间隔(秒)')) {
+                    const val = parseFloat(configMap.get('打怪F6间隔(秒)'));
+                    if (!isNaN(val)) await sendControlCommand(0x11, Math.round(val * 10));
+                }
+                if (configMap.has('打怪F7间隔(秒)')) {
+                    const val = parseFloat(configMap.get('打怪F7间隔(秒)'));
+                    if (!isNaN(val)) await sendControlCommand(0x12, Math.round(val * 10));
+                }
+                if (configMap.has('打怪F9间隔(秒)')) {
+                    const val = parseFloat(configMap.get('打怪F9间隔(秒)'));
+                    if (!isNaN(val)) await sendControlCommand(0x13, Math.round(val * 10));
+                }
+                if (configMap.has('打怪空格间隔(秒)')) {
+                    const val = parseFloat(configMap.get('打怪空格间隔(秒)'));
+                    if (!isNaN(val)) await sendControlCommand(0x14, Math.round(val * 10));
+                }
+                await new Promise(r => setTimeout(r, 500));
+                for (let i = 0; i < functions.length; i++) {
+                    const func = functions[i];
+                    const keyName = configMap.get(`键位_${func.name}`);
+                    const modName = configMap.get(`键位_${func.name}_修饰键`) || '无';
+                    if (keyName && keyNameToHid[keyName] !== undefined) {
+                        await sendControlCommandWithTwoValues(func.keyCmd, keyNameToHid[keyName], modifierToMask[modName]);
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+                    const enabledStr = configMap.get(`键位_${func.name}_开启`);
+                    if (enabledStr) {
+                        await sendControlCommand(func.enableCmd, enabledStr === '开启' ? 1 : 0);
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+                }
+                setTimeout(() => {
+                    initializeDeviceSettings();
+                    showNotification('配置导入完成！', 'success');
+                }, 800);
+            };
+            reader.readAsText(file, 'UTF-8');
+            event.target.value = '';
+        }
+        
+        function resetDisplay() {
+            document.getElementById('time1hDisplay').textContent = '--分钟';
+            document.getElementById('time1hSlider').value = 59;
+            document.getElementById('time2hDisplay').textContent = '--分钟';
+            document.getElementById('time2hSlider').value = 119;
+            document.getElementById('time3hDisplay').textContent = '--分钟';
+            document.getElementById('time3hSlider').value = 179;
+            document.getElementById('time4hDisplay').textContent = '--分钟';
+            document.getElementById('time4hSlider').value = 239;
+            resetSavingIndicators();
+            personDisplay.textContent = '无限';
+            cyclePersonCountElement.textContent = '--';
+            currentPersonElement.textContent = '--';
+            resetPersonButtons();
+            status.fishingModeType = -1;
+            updateFishingModeButtons();
+            resetFightSettingsDisplay();
+            resetFishingSettingsDisplay();
+            fishingSettings.powerSaveEnabled = null;
+            updatePowerSaveButtons();
+            lockControls.capsLock = null;
+            lockControls.numLock = null;
+            lockControls.scrollLock = null;
+            updateLockControlButtons();
+            fishingSettings.changePersonSpeedMode = null;
+            updateChangePersonSpeedButtons();
+            document.getElementById('countdown').textContent = '--:--:--';
+            document.getElementById('currentMode').textContent = '未计时';
+            document.getElementById('fishingMode').textContent = '关闭';
+            document.getElementById('fightingMode').textContent = '关闭';
+            document.getElementById('gameMode').textContent = '--';
+            speedModeStatus.textContent = '关闭';
+            powerSaveStatus.textContent = '关闭';
+            if (deviceNameStatusValue) deviceNameStatusValue.textContent = '--';
+            cyclePersonCount = -1; currentPerson = 0;
+            fightSettings.f5Time = null; fightSettings.f6Time = null; fightSettings.f7Time = null;
+            fightSettings.f9Time = null; fightSettings.spaceTime = null;
+            fishingSettings.f11Interval = null; fishingSettings.f8Cycle = null;
+            fishingSettings.speedModeEnabled = null; fishingSettings.powerSaveEnabled = null;
+            currentDeviceNameStr = "";
+            document.getElementById('newDeviceNameInput').value = '';
+            document.getElementById('editVID').value = '';
+            document.getElementById('editPID').value = '';
+            document.getElementById('editManufacturer').value = '';
+            deviceVid = null; devicePid = null; deviceManufacturer = null;
+            updateAllDeviceInfoDisplay();
+            for (let i = 0; i < keymapData.length; i++) {
+                keymapData[i].keycode = null;
+                keymapData[i].modifier = null;
+            }
+            for (const key of Object.keys(keymapEnabled)) keymapEnabled[key] = true;
+            renderKeymapTable();
+            setKeymapUIEnabled(false);
+        }
+        
+        function resetFightSettingsDisplay() {
+            document.getElementById('fightF5Display').textContent = '--秒';
+            document.getElementById('fightF5Input').value = '';
+            document.getElementById('fightF6Display').textContent = '--秒';
+            document.getElementById('fightF6Input').value = '';
+            document.getElementById('fightF7Display').textContent = '--秒';
+            document.getElementById('fightF7Input').value = '';
+            document.getElementById('fightF9Display').textContent = '--秒';
+            document.getElementById('fightF9Input').value = '';
+            document.getElementById('fightSpaceDisplay').textContent = '--秒';
+            document.getElementById('fightSpaceInput').value = '';
+            document.getElementById('fightF5Saving').classList.remove('show');
+            document.getElementById('fightF6Saving').classList.remove('show');
+            document.getElementById('fightF7Saving').classList.remove('show');
+            document.getElementById('fightF9Saving').classList.remove('show');
+            document.getElementById('fightSpaceSaving').classList.remove('show');
+        }
+        
+        function resetFishingSettingsDisplay() {
+            document.getElementById('fishingF11Display').textContent = '--秒';
+            document.getElementById('fishingF11Input').value = '';
+            document.getElementById('fishingF8Display').textContent = '--秒';
+            document.getElementById('fishingF8Input').value = '';
+            speedModeDisplayValue.textContent = '稳定';
+            speedModeFastBtn.className = 'dual-btn';
+            speedModeSlowBtn.className = 'dual-btn dual-btn-inactive';
+            powerSaveDisplayValue.textContent = '开启';
+            powerSaveOnBtn.className = 'dual-btn';
+            powerSaveOffBtn.className = 'dual-btn dual-btn-inactive';
+            document.getElementById('fishingF11Saving').classList.remove('show');
+            document.getElementById('fishingF8Saving').classList.remove('show');
+            speedModeStatus.textContent = '稳定';
+            powerSaveStatus.textContent = '--';
+        }
+        
+        function updateLockControlButtons() {
+            if (lockControls.capsLock === null) {
+                capslockDisplay.textContent = '--';
+                capslockOnBtn.className = 'other-setting-btn';
+                capslockOffBtn.className = 'other-setting-btn';
+            } else if (lockControls.capsLock) {
+                capslockDisplay.textContent = '开启';
+                capslockOnBtn.className = 'other-setting-btn other-setting-btn-active';
+                capslockOffBtn.className = 'other-setting-btn';
+            } else {
+                capslockDisplay.textContent = '关闭';
+                capslockOnBtn.className = 'other-setting-btn';
+                capslockOffBtn.className = 'other-setting-btn other-setting-btn-inactive';
+            }
+            
+            if (lockControls.numLock === null) {
+                numlockDisplay.textContent = '--';
+                numlockOnBtn.className = 'other-setting-btn';
+                numlockOffBtn.className = 'other-setting-btn';
+            } else if (lockControls.numLock) {
+                numlockDisplay.textContent = '开启';
+                numlockOnBtn.className = 'other-setting-btn other-setting-btn-active';
+                numlockOffBtn.className = 'other-setting-btn';
+            } else {
+                numlockDisplay.textContent = '关闭';
+                numlockOnBtn.className = 'other-setting-btn';
+                numlockOffBtn.className = 'other-setting-btn other-setting-btn-inactive';
+            }
+            
+            if (lockControls.scrollLock === null) {
+                scrolllockDisplay.textContent = '--';
+                scrolllockOnBtn.className = 'other-setting-btn';
+                scrolllockOffBtn.className = 'other-setting-btn';
+            } else if (lockControls.scrollLock) {
+                scrolllockDisplay.textContent = '开启';
+                scrolllockOnBtn.className = 'other-setting-btn other-setting-btn-active';
+                scrolllockOffBtn.className = 'other-setting-btn';
+            } else {
+                scrolllockDisplay.textContent = '关闭';
+                scrolllockOnBtn.className = 'other-setting-btn';
+                scrolllockOffBtn.className = 'other-setting-btn other-setting-btn-inactive';
+            }
+        }
+        
+        function updateControlButtons() {
+            if (!isConnected) {
+                startFishingBtn.className = 'control-btn';
+                stopFishingBtn.className = 'control-btn';
+                startFightingBtn.className = 'control-btn';
+                stopFightingBtn.className = 'control-btn';
+                startFishingBtn.disabled = true;
+                stopFishingBtn.disabled = true;
+                startFightingBtn.disabled = true;
+                stopFightingBtn.disabled = true;
+                classicModeBtn.disabled = true;
+                retailModeBtn.disabled = true;
+                document.querySelectorAll('.timer-btn').forEach(btn => { btn.disabled = true; btn.className = 'timer-btn'; });
+                capslockOnBtn.disabled = true;
+                capslockOffBtn.disabled = true;
+                numlockOnBtn.disabled = true;
+                numlockOffBtn.disabled = true;
+                scrolllockOnBtn.disabled = true;
+                scrolllockOffBtn.disabled = true;
+                changePersonFastBtn.disabled = true;
+                changePersonSlowBtn.disabled = true;
+                speedModeFastBtn.disabled = true;
+                speedModeSlowBtn.disabled = true;
+                powerSaveOnBtn.disabled = true;
+                powerSaveOffBtn.disabled = true;
+            } else {
+                startFishingBtn.disabled = false;
+                stopFishingBtn.disabled = false;
+                startFightingBtn.disabled = false;
+                stopFightingBtn.disabled = false;
+                classicModeBtn.disabled = false;
+                retailModeBtn.disabled = false;
+                document.querySelectorAll('.timer-btn').forEach(btn => { btn.disabled = false; });
+                capslockOnBtn.disabled = false;
+                capslockOffBtn.disabled = false;
+                numlockOnBtn.disabled = false;
+                numlockOffBtn.disabled = false;
+                scrolllockOnBtn.disabled = false;
+                scrolllockOffBtn.disabled = false;
+                changePersonFastBtn.disabled = false;
+                changePersonSlowBtn.disabled = false;
+                speedModeFastBtn.disabled = false;
+                speedModeSlowBtn.disabled = false;
+                powerSaveOnBtn.disabled = false;
+                powerSaveOffBtn.disabled = false;
+                if (status.fishingMode) {
+                    startFishingBtn.className = 'control-btn control-btn-active';
+                    stopFishingBtn.className = 'control-btn';
+                } else {
+                    startFishingBtn.className = 'control-btn';
+                    stopFishingBtn.className = 'control-btn control-btn-inactive';
+                }
+                if (status.fightingMode) {
+                    startFightingBtn.className = 'control-btn control-btn-active';
+                    stopFightingBtn.className = 'control-btn';
+                } else {
+                    startFightingBtn.className = 'control-btn';
+                    stopFightingBtn.className = 'control-btn control-btn-inactive';
+                }
+                updateTimerButtons();
+            }
+        }
+        
+        function updateFishingModeButtons() {
+            if (status.fishingModeType === -1) {
+                classicModeBtn.className = 'fishing-mode-btn fishing-mode-btn-inactive';
+                retailModeBtn.className = 'fishing-mode-btn fishing-mode-btn-inactive';
+            } else if (status.fishingModeType === 0) {
+                classicModeBtn.className = 'fishing-mode-btn fishing-mode-btn-active';
+                retailModeBtn.className = 'fishing-mode-btn fishing-mode-btn-inactive';
+            } else {
+                classicModeBtn.className = 'fishing-mode-btn fishing-mode-btn-inactive';
+                retailModeBtn.className = 'fishing-mode-btn fishing-mode-btn-active';
+            }
+        }
+        
+        function updateTimerButtons() {
+            const timerButtons = document.querySelectorAll('.timer-btn');
+            timerButtons.forEach(btn => {
+                btn.className = 'timer-btn';
+                let modeValue = -1;
+                switch (btn.textContent) {
+                    case '无定时': modeValue = 0; break;
+                    case '绿灯': modeValue = 1; break;
+                    case '黄灯': modeValue = 2; break;
+                    case '红灯': modeValue = 3; break;
+                    case '紫灯': modeValue = 4; break;
+                }
+                if (status.modeActive === modeValue) btn.className = 'timer-btn timer-btn-active';
+            });
+        }
+        
+        function updatePageTitle() {
+            if (status.modeActive > 0 && status.fishingMode) {
+                const hoursStr = status.hours.toString().padStart(2, '0');
+                const minutesStr = status.minutes.toString().padStart(2, '0');
+                const secondsStr = status.seconds.toString().padStart(2, '0');
+                let personInfo = '';
+                if (cyclePersonCount === 0 && currentPerson > 0) personInfo = `第${currentPerson}/无限人`;
+                else if (cyclePersonCount === 1 && currentPerson > 0) personInfo = `第${currentPerson}/1人(单人模式)`;
+                else if (cyclePersonCount > 0 && currentPerson > 0) personInfo = `第${currentPerson}/${cyclePersonCount}人`;
+                else personInfo = '第--/--人';
+                document.title = `${hoursStr}:${minutesStr}:${secondsStr} ${personInfo}`;
+            } else if (isConnected) document.title = "钓鱼助手 - 已连接";
+            else document.title = "钓鱼助手";
+        }
+        
+        function resetSavingIndicators() {
+            document.getElementById('time1hSaving').classList.remove('show');
+            document.getElementById('time2hSaving').classList.remove('show');
+            document.getElementById('time3hSaving').classList.remove('show');
+            document.getElementById('time4hSaving').classList.remove('show');
+        }
+        
+        function showSaveDelay() {
+            saveDelay.classList.add('show');
+            setTimeout(() => saveDelay.classList.remove('show'), 2000);
+        }
+        
+        function showTaskbar() { taskbarIndicator.classList.remove('taskbar-hidden'); }
+        function hideTaskbar() { taskbarIndicator.classList.add('taskbar-hidden'); }
+        
+        function updateTaskbar() {
+            if (status.modeActive > 0 && status.fishingMode) {
+                const hoursStr = status.hours.toString().padStart(2, '0');
+                const minutesStr = status.minutes.toString().padStart(2, '0');
+                const secondsStr = status.seconds.toString().padStart(2, '0');
+                taskbarCountdown.textContent = `${hoursStr}:${minutesStr}:${secondsStr}`;
+            } else taskbarCountdown.textContent = '--:--:--';
+            
+            if (cyclePersonCount === 1 && currentPerson > 0) taskbarPerson.textContent = `${currentPerson}/1人`;
+            else if (currentPerson > 0 && cyclePersonCount > 0) taskbarPerson.textContent = `${currentPerson}/${cyclePersonCount}`;
+            else if (cyclePersonCount === 0 && currentPerson > 0) taskbarPerson.textContent = `${currentPerson}/无限`;
+            else taskbarPerson.textContent = '--/--';
+            
+            if (isConnected) {
+                if (status.fishingMode) taskbarStatus.textContent = '钓鱼模式运行中';
+                else if (status.fightingMode) taskbarStatus.textContent = '打怪模式运行中';
+                else taskbarStatus.textContent = '设备已连接';
+            } else taskbarStatus.textContent = '设备未连接';
+        }
+        
+        function updateConnectionStatus() {
+            if (isConnected) {
+                statusIndicator.className = 'status-indicator connected';
+                statusText.textContent = '已连接设备';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                statusIndicator.className = 'status-indicator';
+                statusText.textContent = '未连接设备';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+        
+        function startStatusUpdates() {
+            if (statusInterval) clearInterval(statusInterval);
+            statusInterval = setInterval(async () => { if (isConnected) await sendControlCommand(8); }, 1000);
+        }
+        
+        function updateSettingsDisplay() {
+            if (settings.time1h !== null) { document.getElementById('time1hDisplay').textContent = settings.time1h + '分钟'; document.getElementById('time1hSlider').value = settings.time1h; }
+            if (settings.time2h !== null) { document.getElementById('time2hDisplay').textContent = settings.time2h + '分钟'; document.getElementById('time2hSlider').value = settings.time2h; }
+            if (settings.time3h !== null) { document.getElementById('time3hDisplay').textContent = settings.time3h + '分钟'; document.getElementById('time3hSlider').value = settings.time3h; }
+            if (settings.time4h !== null) { document.getElementById('time4hDisplay').textContent = settings.time4h + '分钟'; document.getElementById('time4hSlider').value = settings.time4h; }
+            resetSavingIndicators();
+        }
+        
+        function updateStatusDisplay() {
+            if (status.modeActive > 0 && status.fishingMode) {
+                const hoursStr = status.hours.toString().padStart(2, '0');
+                const minutesStr = status.minutes.toString().padStart(2, '0');
+                const secondsStr = status.seconds.toString().padStart(2, '0');
+                document.getElementById('countdown').textContent = `${hoursStr}:${minutesStr}:${secondsStr}`;
+                const modeNames = ['无定时', '绿灯', '黄灯', '红灯', '紫灯'];
+                document.getElementById('currentMode').textContent = modeNames[status.modeActive] || '无定时';
+            } else if (status.fishingMode && status.modeActive === 0) {
+                document.getElementById('countdown').textContent = '--:--:--';
+                document.getElementById('currentMode').textContent = '无定时';
+            } else {
+                document.getElementById('countdown').textContent = '--:--:--';
+                document.getElementById('currentMode').textContent = '未计时';
+            }
+            document.getElementById('fishingMode').textContent = status.fishingMode ? '开启' : '关闭';
+            document.getElementById('fightingMode').textContent = status.fightingMode ? '开启' : '关闭';
+            document.getElementById('gameMode').textContent = status.fishingModeType === -1 ? '--' : (status.fishingModeType === 0 ? '怀旧服' : '正式服');
+            if (fishingSettings.speedModeEnabled !== null) speedModeStatus.textContent = fishingSettings.speedModeEnabled ? '快速' : '稳定';
+            if (fishingSettings.powerSaveEnabled !== null) powerSaveStatus.textContent = fishingSettings.powerSaveEnabled ? '开启' : '关闭';
+            if (fishingSettings.changePersonSpeedMode !== null) changePersonSpeedStatus.textContent = fishingSettings.changePersonSpeedMode ? '快速' : '稳定';
+        }
+        
+        function updateFightSettingsDisplay() {
+            if (fightSettings.f5Time !== null) {
+                document.getElementById('fightF5Display').textContent = (fightSettings.f5Time / 10).toFixed(1) + '秒';
+                document.getElementById('fightF5Input').value = (fightSettings.f5Time / 10).toFixed(1);
+            }
+            if (fightSettings.f6Time !== null) {
+                document.getElementById('fightF6Display').textContent = (fightSettings.f6Time / 10).toFixed(1) + '秒';
+                document.getElementById('fightF6Input').value = (fightSettings.f6Time / 10).toFixed(1);
+            }
+            if (fightSettings.f7Time !== null) {
+                document.getElementById('fightF7Display').textContent = (fightSettings.f7Time / 10).toFixed(1) + '秒';
+                document.getElementById('fightF7Input').value = (fightSettings.f7Time / 10).toFixed(1);
+            }
+            if (fightSettings.f9Time !== null) {
+                document.getElementById('fightF9Display').textContent = (fightSettings.f9Time / 10).toFixed(1) + '秒';
+                document.getElementById('fightF9Input').value = (fightSettings.f9Time / 10).toFixed(1);
+            }
+            if (fightSettings.spaceTime !== null) {
+                document.getElementById('fightSpaceDisplay').textContent = (fightSettings.spaceTime / 10).toFixed(1) + '秒';
+                document.getElementById('fightSpaceInput').value = (fightSettings.spaceTime / 10).toFixed(1);
+            }
+            updateFightSaveButtons();
+        }
+        
+        function updateFishingSettingsDisplay() {
+            if (fishingSettings.f11Interval !== null) {
+                document.getElementById('fishingF11Display').textContent = fishingSettings.f11Interval + '秒';
+                document.getElementById('fishingF11Input').value = fishingSettings.f11Interval;
+            }
+            if (fishingSettings.f8Cycle !== null) {
+                document.getElementById('fishingF8Display').textContent = (fishingSettings.f8Cycle / 1000).toFixed(1) + '秒';
+                document.getElementById('fishingF8Input').value = (fishingSettings.f8Cycle / 1000).toFixed(1);
+            }
+            if (fishingSettings.speedModeEnabled !== null) updateSpeedModeButtons();
+            if (fishingSettings.powerSaveEnabled !== null) updatePowerSaveButtons();
+            updateFishingSaveButtons();
+        }
+        
+        function updateFightSaveButtons() {
+            const inputs = ['fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input', 'fightSpaceInput'];
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                const btn = document.getElementById(id.replace('Input', 'SaveBtn'));
+                if (input && btn) {
+                    const value = parseFloat(input.value);
+                    const min = parseFloat(input.min);
+                    const max = parseFloat(input.max);
+                    btn.disabled = !(value >= min && value <= max && !isNaN(value));
+                }
+            });
+        }
+        
+        function updateFishingSaveButtons() {
+            ['fishingF11Input', 'fishingF8Input'].forEach(id => {
+                const input = document.getElementById(id);
+                const btn = document.getElementById(id.replace('Input', 'SaveBtn'));
+                if (input && btn) {
+                    const value = parseFloat(input.value);
+                    const min = parseFloat(input.min);
+                    const max = parseFloat(input.max);
+                    btn.disabled = !(value >= min && value <= max && !isNaN(value));
+                }
+            });
+        }
+        
+        function updatePersonDisplay() {
+            if (cyclePersonCount === -1) { personDisplay.textContent = '无限'; cyclePersonCountElement.textContent = '--'; }
+            else if (cyclePersonCount === 0) { personDisplay.textContent = '无限'; cyclePersonCountElement.textContent = '无限'; }
+            else if (cyclePersonCount === 1) { personDisplay.textContent = '1人(单人模式)'; cyclePersonCountElement.textContent = '1人'; }
+            else { personDisplay.textContent = cyclePersonCount + '人'; cyclePersonCountElement.textContent = cyclePersonCount + '人'; }
+            currentPersonElement.textContent = currentPerson > 0 ? currentPerson : '--';
+            updatePersonButtons();
+        }
+        
+        function resetPersonButtons() { document.querySelectorAll('.person-btn').forEach(btn => btn.classList.remove('active')); }
+        
+        function updatePersonButtons() {
+            document.querySelectorAll('.person-btn').forEach(btn => {
+                let btnValue = btn.textContent === '无限' ? 0 : (btn.textContent === '1人' ? 1 : parseInt(btn.textContent));
+                if (btnValue === cyclePersonCount) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+        
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+        
+        function initSliders() {
+            document.querySelectorAll('.slider').forEach(slider => {
+                slider.addEventListener('input', function() {
+                    const displayId = this.id.replace('Slider', 'Display');
+                    document.getElementById(displayId).textContent = this.value + '分钟';
+                });
+            });
+        }
+        
+        function disableFunctionKeys(e) {
+            const keyCode = e.keyCode || e.which;
+            if ((keyCode >= 112 && keyCode <= 123) || (e.key && e.key.startsWith && e.key.startsWith('F') && e.key.length >= 2 && e.key.length <= 3)) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            if (keyCode === 116) { e.preventDefault(); showNotification('F5刷新功能已禁用', 'warning'); return false; }
+            if (keyCode === 122) { e.preventDefault(); showNotification('F11全屏功能已禁用', 'warning'); return false; }
+            if (keyCode === 123) { e.preventDefault(); showNotification('F12开发者工具已禁用', 'warning'); return false; }
+            if (e.ctrlKey && (keyCode === 82 || keyCode === 114)) { e.preventDefault(); showNotification('Ctrl+R刷新功能已禁用', 'warning'); return false; }
+            if (e.type === 'contextmenu') { e.preventDefault(); return false; }
+            return true;
+        }
+        
+        document.addEventListener('keydown', disableFunctionKeys);
+        document.addEventListener('contextmenu', disableFunctionKeys);
+        
+        window.setFishingMode = setFishingMode;
+        window.setPersonCount = setPersonCount;
+        window.startFishing = startFishing;
+        window.stopFishing = stopFishing;
+        window.startFighting = startFighting;
+        window.stopFighting = stopFighting;
+        window.toggleCycleMode = toggleCycleMode;
+        window.setDefaultTime1h = setDefaultTime1h;
+        window.setDefaultTime2h = setDefaultTime2h;
+        window.setDefaultTime3h = setDefaultTime3h;
+        window.setDefaultTime4h = setDefaultTime4h;
+        window.saveTime1h = saveTime1h;
+        window.saveTime2h = saveTime2h;
+        window.saveTime3h = saveTime3h;
+        window.saveTime4h = saveTime4h;
+        window.saveFightF5 = saveFightF5;
+        window.saveFightF6 = saveFightF6;
+        window.saveFightF7 = saveFightF7;
+        window.saveFightF9 = saveFightF9;
+        window.saveFightSpace = saveFightSpace;
+        window.setDefaultFightF5 = setDefaultFightF5;
+        window.setDefaultFightF6 = setDefaultFightF6;
+        window.setDefaultFightF7 = setDefaultFightF7;
+        window.setDefaultFightF9 = setDefaultFightF9;
+        window.setDefaultFightSpace = setDefaultFightSpace;
+        window.resetAllFightSettings = resetAllFightSettings;
+        window.saveFishingF11 = saveFishingF11;
+        window.saveFishingF8 = saveFishingF8;
+        window.setDefaultFishingF11 = setDefaultFishingF11;
+        window.setDefaultFishingF8 = setDefaultFishingF8;
+        window.setSpeedModeEnabled = setSpeedModeEnabled;
+        window.setPowerSaveEnabled = setPowerSaveEnabled;
+        window.setCapsLockControl = setCapsLockControl;
+        window.setNumLockControl = setNumLockControl;
+        window.setScrollLockControl = setScrollLockControl;
+        window.setChangePersonSpeedMode = setChangePersonSpeedMode;
+        window.saveSingleKeymap = saveSingleKeymap;
+        window.resetSingleKeymap = resetSingleKeymap;
+        window.toggleKeymapEnable = toggleKeymapEnable;
+        window.resetAllKeymap = resetAllKeymap;
+        window.resetAllToDefault = resetAllToDefault;
+        window.rebootToBootsel = rebootToBootsel;
+        window.exportConfig = exportConfig;
+        window.importConfig = importConfig;
+        window.saveWebPageToLocal = saveWebPageToLocal;
+        window.setDeviceName = setDeviceName;
+        window.resetDeviceName = resetDeviceName;
+        window.saveDeviceInfo = saveDeviceInfo;
+        window.resetDeviceInfo = resetDeviceInfo;
+        window.randomDeviceInfo = randomDeviceInfo;
+        window.refreshDeviceInfo = refreshDeviceInfo;
+        
+        window.addEventListener('load', async () => {
+            checkWebHIDSupport();
+            updateConnectionStatus();
+            initSliders();
+            resetDisplay();
+            updateControlButtons();
+            updateFishingModeButtons();
+            renderKeymapTable();
+            setKeymapUIEnabled(false);
+            
+            connectBtn.addEventListener('click', connectDevice);
+            disconnectBtn.addEventListener('click', disconnectDevice);
+            taskbarResetAllBtn.addEventListener('click', resetAllToDefault);
+            taskbarExportConfigBtn.addEventListener('click', exportConfig);
+            taskbarImportConfigBtn.addEventListener('click', importConfig);
+            taskbarBootselBtn.addEventListener('click', rebootToBootsel);
+            importFileInput.addEventListener('change', handleImportFile);
+            document.getElementById('resetAllKeymapBtn').addEventListener('click', resetAllKeymap);
+            
+            ['fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input', 'fightSpaceInput'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) { input.addEventListener('input', updateFightSaveButtons); input.addEventListener('change', updateFightSaveButtons); }
+            });
+            ['fishingF11Input', 'fishingF8Input'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) { input.addEventListener('input', updateFishingSaveButtons); input.addEventListener('change', updateFishingSaveButtons); }
+            });
+            
+            updateFightSaveButtons();
+            updateFishingSaveButtons();
+            
+            if ('hid' in navigator) {
+                try {
+                    const devices = await navigator.hid.getDevices();
+                    if (devices.length > 0) {
+                        const lastDevice = devices[devices.length - 1];
+                        if (!lastDevice.opened) await lastDevice.open();
+                        connectionManager.device = lastDevice;
+                        connectionManager.isConnected = true;
+                        device = lastDevice;
+                        isConnected = true;
+                        device.addEventListener('inputreport', handleInputReport);
+                        connectionManager.startHeartbeat();
+                        updateConnectionStatus();
+                        showNotification('设备已自动重新连接，正在读取设备信息...', 'success');
+                        showTaskbar();
+                        connectionManager.startDeviceInitialization();
+                        startStatusUpdates();
+                    }
+                } catch (error) { console.error('自动重连失败:', error); }
+            }
+            
+            window.addEventListener('beforeunload', () => { if (isConnected) disconnectDevice(); });
+        });
+    </script>
+</body>
+</html>
