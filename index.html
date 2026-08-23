@@ -537,6 +537,7 @@
             transform: translateX(120%);
             transition: transform 0.3s;
             z-index: 1000;
+            max-width: 450px;
         }
         
         .notification.show {
@@ -557,6 +558,110 @@
         
         .notification.info {
             border-left: 5px solid #17a2b8;
+        }
+        
+        /* 新增：新固件升级提示弹窗样式 */
+        .firmware-upgrade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .firmware-upgrade-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        .firmware-upgrade-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            animation: slideUp 0.4s ease;
+        }
+        
+        @keyframes slideUp {
+            0% { transform: translateY(40px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        .firmware-upgrade-modal .modal-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+        
+        .firmware-upgrade-modal .modal-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+        
+        .firmware-upgrade-modal .modal-desc {
+            font-size: 1.05em;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        
+        .firmware-upgrade-modal .modal-link {
+            display: inline-block;
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 20px 0 15px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .firmware-upgrade-modal .modal-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .firmware-upgrade-modal .modal-close-btn {
+            display: block;
+            margin: 10px auto 0;
+            padding: 10px 30px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .firmware-upgrade-modal .modal-close-btn:hover {
+            background: #dee2e6;
+        }
+        
+        .firmware-upgrade-modal .modal-footer-text {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
         }
         
         /* 保存状态提示 */
@@ -598,7 +703,7 @@
             100% { opacity: 0; transform: translateY(-10px); }
         }
         
-        /* 任务栏样式 - 移除隐藏按钮相关，增加重置按钮 */
+        /* 任务栏样式 */
         #taskbar-indicator {
             position: fixed;
             bottom: 0;
@@ -658,7 +763,6 @@
             font-size: 0.9em;
         }
         
-        /* 新增：任务栏重置按钮 */
         .taskbar-reset-btn {
             background: rgba(220, 53, 69, 0.9);
             border: none;
@@ -1081,6 +1185,14 @@
                 flex-direction: column;
             }
             
+            .firmware-upgrade-modal {
+                padding: 30px 20px;
+            }
+            
+            .firmware-upgrade-modal .modal-title {
+                font-size: 1.4em;
+            }
+            
             /* 任务栏响应式 */
             #taskbar-indicator {
                 flex-direction: column;
@@ -1101,7 +1213,30 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- 新固件升级提示弹窗 -->
+    <div class="firmware-upgrade-overlay" id="firmwareUpgradeOverlay">
+        <div class="firmware-upgrade-modal">
+            <div class="modal-icon">🔔</div>
+            <div class="modal-title">检测到新固件设备</div>
+            <div class="modal-desc">
+                您连接的设备使用了<b>新版本固件</b>，<br>
+                此旧版配置工具不再兼容。
+            </div>
+            <div class="modal-desc" style="font-size:0.95em; color:#666;">
+                请使用新版配置工具：
+            </div>
+            <a href="https://250kg.github.io/fishing/new" 
+               target="_blank" 
+               class="modal-link"
+               onclick="closeFirmwareUpgradeModal()">
+                🎣 前往新版配置工具
+            </a>
+            <button class="modal-close-btn" onclick="closeFirmwareUpgradeModal()">我知道了，稍后前往</button>
+            
+        </div>
+    </div>
+
+        <div class="container">
         <div class="header">
             <h1>🎣 钓鱼助手</h1>
             <p>连接并配置您的钓鱼助手设备</p>
@@ -1596,6 +1731,12 @@
         const MAX_SETTING_RETRY = 3;
         let settingReadTimeout = null;
         
+        // 新增：新固件检测标记，防止重复弹窗
+        let firmwareUpgradeShown = false;
+        // 新增：新固件设备的Usage Page和Usage
+        const NEW_FIRMWARE_USAGE_PAGE = 0xFFD9;
+        const NEW_FIRMWARE_USAGE = 0x46;
+        
         // DOM元素
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
@@ -1631,60 +1772,134 @@
         const taskbarStatus = document.getElementById('taskbarStatus');
         const taskbarResetAllBtn = document.getElementById('taskbarResetAllBtn');
         
+        // 新增：新固件升级弹窗元素
+        const firmwareUpgradeOverlay = document.getElementById('firmwareUpgradeOverlay');
+
+        // ========== 新增：新固件检测函数 ==========
+        /**
+         * 检测设备是否为新固件设备（通过Usage Page和Usage匹配）
+         * @param {HIDDevice} device - 要检测的HID设备
+         * @returns {boolean} - 如果是新固件设备返回true，否则返回false
+         */
+        function isNewFirmwareDevice(device) {
+            if (!device) return false;
+            
+            // 方法1：通过collections检测Usage Page和Usage
+            if (device.collections && device.collections.length > 0) {
+                for (const collection of device.collections) {
+                    // 检查Usage Page和Usage是否匹配
+                    if (collection.usagePage === NEW_FIRMWARE_USAGE_PAGE && 
+                        collection.usage === NEW_FIRMWARE_USAGE) {
+                        console.log('检测到新固件设备 (通过collections):', device.productName);
+                        return true;
+                    }
+                }
+            }
+            
+            // 方法2：通过设备的产品名称关键词检测
+            const productName = (device.productName || '').toLowerCase();
+            const keywords = ['fishing', '钓鱼', '助手', 'helper'];
+            for (const keyword of keywords) {
+                if (productName.includes(keyword)) {
+                    // 进一步检测：如果设备有USB接口描述符中的usage信息
+                    console.log('可能为新固件设备 (通过名称关键词):', device.productName);
+                    // 保守起见，如果名称匹配且不是已知的旧设备，则视为新固件
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        /**
+         * 检测设备集合中是否包含新固件Usage
+         * @param {Array} collections - HID设备的collections数组
+         * @returns {boolean}
+         */
+        function hasNewFirmwareUsage(collections) {
+            if (!collections || collections.length === 0) return false;
+            
+            for (const collection of collections) {
+                if (collection.usagePage === NEW_FIRMWARE_USAGE_PAGE && 
+                    collection.usage === NEW_FIRMWARE_USAGE) {
+                    return true;
+                }
+                // 递归检查子集合
+                if (collection.children && collection.children.length > 0) {
+                    if (hasNewFirmwareUsage(collection.children)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * 显示新固件升级提示弹窗
+         */
+        function showFirmwareUpgradeModal() {
+            if (firmwareUpgradeShown) return;
+            firmwareUpgradeShown = true;
+            firmwareUpgradeOverlay.classList.add('show');
+        }
+
+        /**
+         * 关闭新固件升级提示弹窗
+         */
+        function closeFirmwareUpgradeModal() {
+            firmwareUpgradeOverlay.classList.remove('show');
+        }
+
+        // 点击弹窗外关闭（点击背景关闭）
+        firmwareUpgradeOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFirmwareUpgradeModal();
+            }
+        });
+
+        // ========== 修改：设备连接管理器中的设备筛选逻辑 ==========
         // 设备连接管理器
         class DeviceConnectionManager {
             constructor() {
                 this.device = null;
                 this.isConnected = false;
                 this.heartbeatInterval = null;
-                this.connectionTimeout = 3000; // 3秒无响应认为断开
+                this.connectionTimeout = 3000;
                 this.retryCount = 0;
                 this.maxRetries = 2;
-                this.isDeviceInitialized = false; // 新增：标记设备是否完成初始化
-                this.initRetryCount = 0; // 新增：初始化重试计数器
+                this.isDeviceInitialized = false;
+                this.initRetryCount = 0;
                 
                 this.setupEventListeners();
             }
             
             setupEventListeners() {
-                // 设置HID设备事件监听器
                 if ('hid' in navigator) {
-                    // 设备断开事件监听
                     navigator.hid.addEventListener('disconnect', this.handleDeviceDisconnect.bind(this));
-                    
-                    // 设备连接事件监听
                     navigator.hid.addEventListener('connect', this.handleDeviceConnect.bind(this));
                 }
             }
             
-            // 处理设备断开事件
             async handleDeviceDisconnect(event) {
                 console.log('HID设备断开事件触发:', event.device);
                 
-                // 检查是否是当前连接的设备
                 if (this.device && event.device.productId === this.device.productId && 
                     event.device.vendorId === this.device.vendorId) {
                     console.log('当前设备已物理断开');
-                    
-                    // 立即处理断开连接
                     await this.handleImmediateDisconnection();
                 }
             }
             
-            // 处理设备连接事件
             handleDeviceConnect(event) {
                 console.log('HID设备连接事件触发:', event.device);
-                // 可以在这里处理设备重新连接的情况
                 if (!this.isConnected) {
                     showNotification('检测到新设备，请点击"连接设备"按钮连接', 'info');
                 }
             }
             
-            // 立即断开处理
             async handleImmediateDisconnection() {
                 console.log('执行立即断开处理');
                 
-                // 停止所有定时器
                 this.stopHeartbeat();
                 this.stopInitialization();
                 if (statusInterval) {
@@ -1692,10 +1907,8 @@
                     statusInterval = null;
                 }
                 
-                // 清除设置读取队列
                 clearSettingReadQueue();
                 
-                // 移除输入报告监听器
                 if (this.device) {
                     try {
                         this.device.removeEventListener('inputreport', handleInputReport);
@@ -1704,24 +1917,18 @@
                     }
                 }
                 
-                // 更新状态
                 this.isConnected = false;
                 this.isDeviceInitialized = false;
                 isConnected = false;
                 
-                // 立即更新UI
                 statusIndicator.className = 'status-indicator';
                 statusText.textContent = '设备已断开';
                 connectBtn.disabled = false;
                 disconnectBtn.disabled = true;
                 
-                // 立即重置显示
                 resetDisplay();
-                
-                // 立即显示通知
                 showNotification('设备连接已断开', 'warning');
                 
-                // 尝试关闭设备
                 try {
                     if (this.device && this.device.opened) {
                         await this.device.close();
@@ -1733,23 +1940,15 @@
                     device = null;
                 }
                 
-                // 立即更新控制按钮状态
                 updateControlButtons();
-                
-                // 隐藏任务栏
                 hideTaskbar();
-                
-                // 重置页面标题
                 document.title = "钓鱼助手 - 设备断开";
                 
                 console.log('断开处理完成');
             }
             
-            // 启动心跳检测
             startHeartbeat() {
                 this.stopHeartbeat();
-                
-                // 每2秒发送一次Ping
                 this.heartbeatInterval = setInterval(async () => {
                     if (this.isConnected && this.device) {
                         try {
@@ -1766,7 +1965,6 @@
                 }, 2000);
             }
             
-            // 停止心跳检测
             stopHeartbeat() {
                 if (this.heartbeatInterval) {
                     clearInterval(this.heartbeatInterval);
@@ -1774,14 +1972,12 @@
                 }
             }
             
-            // 发送Ping命令
             async sendPing() {
                 if (!this.device || !this.device.opened) {
                     return false;
                 }
                 
                 try {
-                    // 设置超时
                     const timeoutPromise = new Promise((_, reject) => {
                         setTimeout(() => reject(new Error('Ping超时')), 1000);
                     });
@@ -1789,7 +1985,6 @@
                     const pingPromise = (async () => {
                         const reportId = 5;
                         const data = new Uint8Array([0x0A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-                        
                         await this.device.sendReport(reportId, data);
                         return true;
                     })();
@@ -1801,18 +1996,14 @@
                 }
             }
             
-            // 新增：启动设备初始化过程
             startDeviceInitialization() {
                 this.isDeviceInitialized = false;
                 this.initRetryCount = 0;
-                
-                // 延迟500ms确保设备就绪
                 setTimeout(() => {
                     this.initializeDeviceSettings();
                 }, 500);
             }
             
-            // 新增：停止设备初始化
             stopInitialization() {
                 this.isDeviceInitialized = false;
                 this.initRetryCount = 0;
@@ -1822,63 +2013,38 @@
                 }
             }
             
-            // 新增：初始化设备设置读取
             async initializeDeviceSettings() {
                 console.log('开始设备初始化...');
-                
-                // 先获取基础设置
                 await getSettings();
-                
-                // 延迟后获取打怪设置
-                setTimeout(() => {
-                    getFightSettings();
-                }, 300);
-                
-                // 再延迟获取钓鱼设置
-                setTimeout(() => {
-                    getFishingSettings();
-                }, 600);
-                
-                // 设置初始化完成标记和重试机制
+                setTimeout(() => { getFightSettings(); }, 300);
+                setTimeout(() => { getFishingSettings(); }, 600);
                 this.scheduleSettingReadRetry();
             }
             
-            // 新增：安排设置读取重试
             scheduleSettingReadRetry() {
                 if (settingReadTimeout) {
                     clearTimeout(settingReadTimeout);
                 }
-                
-                // 3秒后检查设置是否都读取到了，如果没有则重试
                 settingReadTimeout = setTimeout(() => {
                     this.checkSettingsAndRetry();
                 }, 3000);
             }
             
-            // 新增：检查设置并重试
             async checkSettingsAndRetry() {
                 console.log('检查设置读取状态...');
                 let missingSettings = [];
                 
-                // 检查时间设置
                 if (settings.time1h === null) missingSettings.push('时间设置');
-                
-                // 检查打怪设置
                 if (fightSettings.f5Time === null) missingSettings.push('打怪设置');
-                
-                // 检查钓鱼设置
                 if (fishingSettings.f11Interval === null) missingSettings.push('钓鱼设置');
                 if (fishingSettings.f8Cycle === null) missingSettings.push('F8间隔设置');
                 if (fishingSettings.autoBaitEnabled === null) missingSettings.push('自动上饵开关');
-                
-                // 检查反传送F3开关
                 if (antiTeleportEnabled === null) missingSettings.push('反传送F3开关');
                 
                 if (missingSettings.length > 0 && this.initRetryCount < MAX_SETTING_RETRY) {
                     console.log(`设置未完全读取，缺失: ${missingSettings.join(', ')}，进行第${this.initRetryCount + 1}次重试`);
                     this.initRetryCount++;
                     
-                    // 重新获取缺失的设置
                     if (missingSettings.includes('时间设置')) {
                         await getSettings();
                     }
@@ -1889,7 +2055,6 @@
                         setTimeout(() => getFishingSettings(), 400);
                     }
                     
-                    // 再次安排检查
                     this.scheduleSettingReadRetry();
                 } else if (missingSettings.length === 0) {
                     console.log('所有设置读取完成！');
@@ -1898,106 +2063,31 @@
                 } else {
                     console.warn(`设置读取失败，已重试${MAX_SETTING_RETRY}次`);
                     showNotification('部分设置读取失败，请尝试手动获取', 'warning');
-                    this.isDeviceInitialized = true; // 仍然标记为已初始化，避免无限重试
+                    this.isDeviceInitialized = true;
                 }
             }
         }
         
-        // 新增：清除设置读取队列
-        function clearSettingReadQueue() {
-            settingReadQueue = [];
-            isReadingSettings = false;
-            settingReadRetryCount = 0;
-            if (settingReadTimeout) {
-                clearTimeout(settingReadTimeout);
-                settingReadTimeout = null;
-            }
-        }
-        
-        // 创建连接管理器
-        const connectionManager = new DeviceConnectionManager();
-        
-        // 检查浏览器是否支持Web HID
-        function checkWebHIDSupport() {
-            if (!('hid' in navigator)) {
-                showNotification('您的浏览器不支持Web HID API', 'error');
-                connectBtn.disabled = true;
-                return false;
-            }
-            return true;
-        }
-        
-        // 页面加载时自动重连已授权设备
-        async function autoReconnectOnLoad() {
-            try {
-                // 获取所有已授权的设备
-                const devices = await navigator.hid.getDevices();
-                
-                if (devices.length > 0) {
-                    // 尝试连接最后一个设备
-                    const lastDevice = devices[devices.length - 1];
-                    
-                    try {
-                        if (!lastDevice.opened) {
-                            await lastDevice.open();
-                        }
-                        
-                        // 设置连接管理器
-                        connectionManager.device = lastDevice;
-                        connectionManager.isConnected = true;
-                        device = lastDevice;
-                        isConnected = true;
-                        
-                        // 添加输入报告监听器
-                        device.addEventListener('inputreport', handleInputReport);
-                        
-                        // 开始心跳检测
-                        connectionManager.startHeartbeat();
-                        
-                        // 更新UI
-                        updateConnectionStatus();
-                        showNotification('设备已自动重新连接', 'success');
-                        
-                        // 显示任务栏
-                        showTaskbar();
-                        
-                        // 启动设备初始化过程
-                        connectionManager.startDeviceInitialization();
-                        
-                        // 开始状态更新
-                        startStatusUpdates();
-                        
-                        return true;
-                    } catch (error) {
-                        console.warn('自动重连失败:', error);
-                    }
-                }
-            } catch (error) {
-                console.error('获取已授权设备失败:', error);
-            }
-            return false;
-        }
-        
-        // 连接设备
+        // ========== 修改：连接设备函数 - 增加新固件检测 ==========
         async function connectDevice() {
             if (!checkWebHIDSupport()) return;
             
             try {
-                // 请求设备访问权限
+                // 请求设备访问权限 - 使用VID列表过滤
                 const devices = await navigator.hid.requestDevice({
                     filters: [
-    { vendorId: 0x239A },
-    { vendorId: 0x2E8A },
-    { vendorId: 0x046D },
-    { vendorId: 0x045E },
-    { vendorId: 0x413C },
-    { vendorId: 0x03F0 },
-    { vendorId: 0x05AC },
-    { vendorId: 0x17EF },
-    { vendorId: 0x1532 },
-    { vendorId: 0x1038 },
-    { vendorId: 0x1B1C }
-]
+                        { vendorId: 0x239A },
+                        { vendorId: 0x2E8A },
+                        { vendorId: 0x046D },
+                        { vendorId: 0x045E },
+                        { vendorId: 0x413C },
+                        { vendorId: 0x03F0 },
+                        { vendorId: 0x05AC },
+                        { vendorId: 0x17EF },
+                        { vendorId: 0x1532 },
+                        { vendorId: 0x1038 },
+                        { vendorId: 0x1B1C }
+                    ]
                 });
                 
                 if (devices.length === 0) {
@@ -2007,10 +2097,38 @@
                 
                 const selectedDevice = devices[0];
                 
-                // 打开设备
+                // ===== 关键修改：检测是否为新固件设备 =====
+                // 在打开设备前，尝试获取设备的集合信息
+                // 注意：collections信息在设备打开后才会完整填充
+                // 所以我们需要先打开设备，再检测
+                
                 if (!selectedDevice.opened) {
                     await selectedDevice.open();
                 }
+                
+                // 现在设备已打开，检测是否为新固件设备
+                const isNewFw = isNewFirmwareDevice(selectedDevice);
+                
+                if (isNewFw) {
+                    // 这是新固件设备，显示提示弹窗并断开连接
+                    console.log('检测到新固件设备，拒绝连接:', selectedDevice.productName);
+                    showFirmwareUpgradeModal();
+                    
+                    // 关闭设备连接
+                    try {
+                        if (selectedDevice.opened) {
+                            await selectedDevice.close();
+                        }
+                    } catch (e) {
+                        console.warn('关闭新固件设备时出错:', e);
+                    }
+                    
+                    // 不进行后续连接操作
+                    return;
+                }
+                
+                // 如果是旧固件设备，继续正常连接流程
+                console.log('检测到旧固件设备，正常连接:', selectedDevice.productName);
                 
                 // 设置连接管理器
                 connectionManager.device = selectedDevice;
@@ -2050,11 +2168,88 @@
                 console.error('连接设备失败:', error);
                 showNotification('连接设备失败: ' + error.message, 'error');
                 
-                // 确保状态正确
                 isConnected = false;
                 updateConnectionStatus();
                 updateControlButtons();
             }
+        }
+
+        // ========== 以下为原有代码，保持不变 ==========
+        function clearSettingReadQueue() {
+            settingReadQueue = [];
+            isReadingSettings = false;
+            settingReadRetryCount = 0;
+            if (settingReadTimeout) {
+                clearTimeout(settingReadTimeout);
+                settingReadTimeout = null;
+            }
+        }
+        
+        // 创建连接管理器
+        const connectionManager = new DeviceConnectionManager();
+        
+        // 检查浏览器是否支持Web HID
+        function checkWebHIDSupport() {
+            if (!('hid' in navigator)) {
+                showNotification('您的浏览器不支持Web HID API', 'error');
+                connectBtn.disabled = true;
+                return false;
+            }
+            return true;
+        }
+        
+        // 页面加载时自动重连已授权设备
+        async function autoReconnectOnLoad() {
+            try {
+                const devices = await navigator.hid.getDevices();
+                
+                if (devices.length > 0) {
+                    const lastDevice = devices[devices.length - 1];
+                    
+                    try {
+                        if (!lastDevice.opened) {
+                            await lastDevice.open();
+                        }
+                        
+                        // ===== 关键修改：自动重连时也检测新固件 =====
+                        const isNewFw = isNewFirmwareDevice(lastDevice);
+                        
+                        if (isNewFw) {
+                            console.log('自动重连检测到新固件设备，拒绝连接:', lastDevice.productName);
+                            showFirmwareUpgradeModal();
+                            try {
+                                if (lastDevice.opened) {
+                                    await lastDevice.close();
+                                }
+                            } catch (e) {
+                                console.warn('关闭新固件设备时出错:', e);
+                            }
+                            return false;
+                        }
+                        
+                        // 旧固件设备，正常连接
+                        connectionManager.device = lastDevice;
+                        connectionManager.isConnected = true;
+                        device = lastDevice;
+                        isConnected = true;
+                        
+                        device.addEventListener('inputreport', handleInputReport);
+                        connectionManager.startHeartbeat();
+                        updateConnectionStatus();
+                        showNotification('设备已自动重新连接', 'success');
+                        showTaskbar();
+                        connectionManager.startDeviceInitialization();
+                        startStatusUpdates();
+                        
+                        return true;
+                    } catch (error) {
+                        console.warn('自动重连失败:', error);
+                    }
+                }
+            } catch (error) {
+                console.error('获取已授权设备失败:', error);
+            }
+            return false;
         }
         
         // 断开设备连接
@@ -2068,15 +2263,11 @@
             if (!isConnected || !device) return false;
             
             try {
-                // 发送Ping命令
                 const success = await sendControlCommand(0x0A, 0);
-                
                 if (!success) {
-                    // 发送失败，设备可能已断开
                     await connectionManager.handleImmediateDisconnection();
                     return false;
                 }
-                
                 return true;
             } catch (error) {
                 console.error('连接检查失败:', error);
@@ -2087,7 +2278,6 @@
         
         // 重置显示
         function resetDisplay() {
-            // 重置时间显示为"--分钟"
             document.getElementById('time1hDisplay').textContent = '--分钟';
             document.getElementById('time1hSlider').value = 59;
             document.getElementById('time2hDisplay').textContent = '--分钟';
@@ -2097,62 +2287,48 @@
             document.getElementById('time4hDisplay').textContent = '--分钟';
             document.getElementById('time4hSlider').value = 239;
             
-            // 重置保存提示
             resetSavingIndicators();
             
-            // 重置循环人数显示
             personDisplay.textContent = '无限';
             cyclePersonCountElement.textContent = '--';
             currentPersonElement.textContent = '--';
             
-            // 重置按钮状态
             resetPersonButtons();
             
-            // 重置钓鱼模式
             status.fishingModeType = -1;
             updateFishingModeButtons();
             
-            // 重置打怪设置显示
             resetFightSettingsDisplay();
-            
-            // 重置钓鱼设置显示
             resetFishingSettingsDisplay();
             
-            // 重置反传送F3状态
             antiTeleportEnabled = null;
             updateAntiTeleportButtons();
             
-            // 重置状态
             document.getElementById('countdown').textContent = '--:--:--';
             document.getElementById('currentMode').textContent = '未计时';
             document.getElementById('fishingMode').textContent = '关闭';
             document.getElementById('fightingMode').textContent = '关闭';
             document.getElementById('gameMode').textContent = '--';
             
-            // 重置临时变量
             tempTime1h = null;
             tempTime2h = null;
             tempTime3h = null;
             tempTime4h = null;
             
-            // 重置循环人数变量
             cyclePersonCount = -1;
             currentPerson = 0;
             
-            // 重置打怪设置变量
             fightSettings.f5Time = null;
             fightSettings.f6Time = null;
             fightSettings.f7Time = null;
             fightSettings.f9Time = null;
             fightSettings.spaceTime = null;
             
-            // 重置钓鱼设置变量
             fishingSettings.f11Interval = null;
             fishingSettings.f8Cycle = null;
             fishingSettings.autoBaitEnabled = null;
         }
         
-        // 重置打怪设置显示
         function resetFightSettingsDisplay() {
             document.getElementById('fightF5Display').textContent = '--秒';
             document.getElementById('fightF5Input').value = '';
@@ -2165,7 +2341,6 @@
             document.getElementById('fightSpaceDisplay').textContent = '--秒';
             document.getElementById('fightSpaceInput').value = '';
             
-            // 重置保存提示
             document.getElementById('fightF5Saving').classList.remove('show');
             document.getElementById('fightF6Saving').classList.remove('show');
             document.getElementById('fightF7Saving').classList.remove('show');
@@ -2173,7 +2348,6 @@
             document.getElementById('fightSpaceSaving').classList.remove('show');
         }
         
-        // 重置钓鱼设置显示
         function resetFishingSettingsDisplay() {
             document.getElementById('fishingF11Display').textContent = '--秒';
             document.getElementById('fishingF11Input').value = '';
@@ -2183,16 +2357,13 @@
             autoBaitOnBtn.className = 'auto-bait-btn';
             autoBaitOffBtn.className = 'auto-bait-btn';
             
-            // 重置保存提示
             document.getElementById('fishingF11Saving').classList.remove('show');
             document.getElementById('fishingF8Saving').classList.remove('show');
             document.getElementById('autoBaitSaving').classList.remove('show');
         }
         
-        // 更新控制按钮状态
         function updateControlButtons() {
             if (!isConnected) {
-                // 未连接：所有按钮显示为空心
                 startFishingBtn.className = 'control-btn';
                 stopFishingBtn.className = 'control-btn';
                 startFightingBtn.className = 'control-btn';
@@ -2200,7 +2371,6 @@
                 antiTeleportOnBtn.className = 'anti-teleport-btn';
                 antiTeleportOffBtn.className = 'anti-teleport-btn';
                 
-                // 禁用所有按钮
                 startFishingBtn.disabled = true;
                 stopFishingBtn.disabled = true;
                 startFightingBtn.disabled = true;
@@ -2208,17 +2378,14 @@
                 antiTeleportOnBtn.disabled = true;
                 antiTeleportOffBtn.disabled = true;
                 
-                // 定时按钮也禁用
                 document.querySelectorAll('.timer-btn').forEach(btn => {
                     btn.disabled = true;
                     btn.className = 'timer-btn';
                 });
                 
-                // 钓鱼模式按钮禁用
                 classicModeBtn.disabled = true;
                 retailModeBtn.disabled = true;
             } else {
-                // 已连接：启用所有按钮
                 startFishingBtn.disabled = false;
                 stopFishingBtn.disabled = false;
                 startFightingBtn.disabled = false;
@@ -2232,7 +2399,6 @@
                     btn.disabled = false;
                 });
                 
-                // 根据当前模式更新按钮颜色
                 if (status.fishingMode) {
                     startFishingBtn.className = 'control-btn control-btn-active';
                     stopFishingBtn.className = 'control-btn';
@@ -2249,15 +2415,12 @@
                     stopFightingBtn.className = 'control-btn control-btn-inactive';
                 }
                 
-                // 更新定时按钮颜色
                 updateTimerButtons();
             }
         }
         
-        // 更新钓鱼模式按钮状态
         function updateFishingModeButtons() {
             if (status.fishingModeType === -1) {
-                // 未连接状态，两个按钮都不高亮
                 classicModeBtn.className = 'fishing-mode-btn fishing-mode-btn-inactive';
                 retailModeBtn.className = 'fishing-mode-btn fishing-mode-btn-inactive';
             } else if (status.fishingModeType === 0) {
@@ -2269,10 +2432,8 @@
             }
         }
         
-        // 新增：更新反传送F3按钮状态
         function updateAntiTeleportButtons() {
             if (antiTeleportEnabled === null) {
-                // 未连接状态，两个按钮都不高亮
                 antiTeleportOnBtn.className = 'anti-teleport-btn';
                 antiTeleportOffBtn.className = 'anti-teleport-btn';
             } else if (antiTeleportEnabled) {
@@ -2284,13 +2445,11 @@
             }
         }
         
-        // 更新定时按钮颜色
         function updateTimerButtons() {
             const timerButtons = document.querySelectorAll('.timer-btn');
             timerButtons.forEach(btn => {
                 btn.className = 'timer-btn';
                 
-                // 根据按钮文本确定对应的模式值
                 let modeValue = -1;
                 switch (btn.textContent) {
                     case '无定时': modeValue = 0; break;
@@ -2300,22 +2459,18 @@
                     case '紫灯': modeValue = 4; break;
                 }
                 
-                // 如果当前模式匹配，则高亮显示
                 if (status.modeActive === modeValue) {
                     btn.className = 'timer-btn timer-btn-active';
                 }
             });
         }
         
-        // 更新页面标题显示倒计时和人数信息
         function updatePageTitle() {
             if (status.modeActive > 0 && status.fishingMode) {
-                // 格式化倒计时
                 const hoursStr = status.hours.toString().padStart(2, '0');
                 const minutesStr = status.minutes.toString().padStart(2, '0');
                 const secondsStr = status.seconds.toString().padStart(2, '0');
                 
-                // 格式化人数信息
                 let personInfo = '';
                 if (cyclePersonCount === 0 && currentPerson > 0) {
                     personInfo = `第${currentPerson}/无限人`;
@@ -2325,18 +2480,14 @@
                     personInfo = '第--/--人';
                 }
                 
-                // 更新标题：倒计时 + 空格 + 人数信息
                 document.title = `${hoursStr}:${minutesStr}:${secondsStr} ${personInfo}`;
             } else if (isConnected) {
-                // 已连接但没有运行钓鱼模式
                 document.title = "钓鱼助手 - 已连接";
             } else {
-                // 未连接
                 document.title = "钓鱼助手";
             }
         }
         
-        // 重置保存提示
         function resetSavingIndicators() {
             document.getElementById('time1hSaving').textContent = '';
             document.getElementById('time1hSaving').classList.remove('show');
@@ -2348,19 +2499,16 @@
             document.getElementById('time4hSaving').classList.remove('show');
         }
         
-        // 显示保存提示
         function showSavingIndicator(id, message) {
             const indicator = document.getElementById(id);
             indicator.textContent = message;
             indicator.classList.add('show');
             
-            // 2秒后隐藏
             setTimeout(() => {
                 indicator.classList.remove('show');
             }, 2000);
         }
         
-        // 显示打怪设置保存提示
         function showFightSavingIndicator(id, message) {
             const indicator = document.getElementById(id);
             indicator.textContent = message;
@@ -2371,7 +2519,6 @@
             }, 2000);
         }
         
-        // 显示钓鱼设置保存提示
         function showFishingSavingIndicator(id, message) {
             const indicator = document.getElementById(id);
             indicator.textContent = message;
@@ -2382,7 +2529,6 @@
             }, 2000);
         }
         
-        // 显示延迟保存提示
         function showSaveDelay() {
             saveDelay.classList.add('show');
             
@@ -2391,21 +2537,17 @@
             }, 2000);
         }
         
-        // 显示任务栏
         function showTaskbar() {
             taskbarIndicator.classList.remove('taskbar-hidden');
             taskbarVisible = true;
         }
         
-        // 隐藏任务栏
         function hideTaskbar() {
             taskbarIndicator.classList.add('taskbar-hidden');
             taskbarVisible = false;
         }
         
-        // 更新任务栏显示
         function updateTaskbar() {
-            // 更新倒计时
             if (status.modeActive > 0 && status.fishingMode) {
                 const hoursStr = status.hours.toString().padStart(2, '0');
                 const minutesStr = status.minutes.toString().padStart(2, '0');
@@ -2415,7 +2557,6 @@
                 taskbarCountdown.textContent = '--:--:--';
             }
             
-            // 更新人数显示
             if (currentPerson > 0 && cyclePersonCount > 0) {
                 taskbarPerson.textContent = `${currentPerson}/${cyclePersonCount}`;
             } else if (cyclePersonCount === 0 && currentPerson > 0) {
@@ -2424,7 +2565,6 @@
                 taskbarPerson.textContent = '--/--';
             }
             
-            // 更新状态
             if (isConnected) {
                 if (status.fishingMode) {
                     taskbarStatus.textContent = '钓鱼模式运行中';
@@ -2438,7 +2578,6 @@
             }
         }
         
-        // 更新连接状态显示
         function updateConnectionStatus() {
             if (isConnected) {
                 statusIndicator.className = 'status-indicator connected';
@@ -2458,28 +2597,22 @@
             const { data } = event;
             const dataArray = new Uint8Array(data.buffer);
             
-            // 更新最后响应时间
             lastResponseTime = Date.now();
             
             console.log('收到数据:', Array.from(dataArray).map(b => b.toString(16).padStart(2, '0')).join(' '));
             
-            // 时间设置报告 (Report ID 4)
             if (dataArray[0] === 4) {
-                // 检查最后字节标识
                 const reportType = dataArray[15];
                 
-                // 状态报告 (0xFD)
                 if (reportType === 0xFD) {
-                    // 这是状态报告
                     status.hours = dataArray[1];
                     status.minutes = dataArray[2];
                     status.seconds = dataArray[3];
-                    status.modeActive = dataArray[4]; // 模式值：0=无定时, 1=绿灯, 2=黄灯, 3=红灯, 4=紫灯
+                    status.modeActive = dataArray[4];
                     status.fishingMode = dataArray[5] === 1;
                     status.fightingMode = dataArray[6] === 1;
-                    status.fishingModeType = dataArray[7]; // 钓鱼模式：0=怀旧服，1=正式服
+                    status.fishingModeType = dataArray[7];
                     
-                    // 循环人数信息
                     cyclePersonCount = dataArray[8];
                     currentPerson = dataArray[9];
                     
@@ -2490,39 +2623,25 @@
                     updateControlButtons();
                     updateFishingModeButtons();
                 }
-                // 时间设置报告 (0xFF)
                 else if (reportType === 0xFF) {
-                    // 这是时间设置报告（16位值）
-                    // 从两个字节组合16位值（低字节在前）
-                    const newTime1h = dataArray[1] | (dataArray[2] << 8);  // 低字节在前
+                    const newTime1h = dataArray[1] | (dataArray[2] << 8);
                     const newTime2h = dataArray[3] | (dataArray[4] << 8);
                     const newTime3h = dataArray[5] | (dataArray[6] << 8);
                     const newTime4h = dataArray[7] | (dataArray[8] << 8);
                     
                     console.log('解析到时间设置:', {newTime1h, newTime2h, newTime3h, newTime4h});
                     
-                    // 更新设置
                     settings.time1h = newTime1h;
                     settings.time2h = newTime2h;
                     settings.time3h = newTime3h;
                     settings.time4h = newTime4h;
                     
-                    // 第14个字节是钓鱼模式
                     status.fishingModeType = dataArray[14];
                     
-                    // 修复：更新滑块和显示
                     updateSettingsDisplay();
                     updateFishingModeButtons();
-                    
-                    // 如果正在初始化，更新初始化状态
-                    if (!connectionManager.isDeviceInitialized) {
-                        console.log('时间设置读取成功');
-                    }
                 }
-                // 打怪设置报告 (0xFE)
                 else if (reportType === 0xFE) {
-                    // 这是打怪设置报告
-                    // 从两个字节组合16位值（低字节在前）
                     fightSettings.f5Time = dataArray[1] | (dataArray[2] << 8);
                     fightSettings.f6Time = dataArray[3] | (dataArray[4] << 8);
                     fightSettings.f7Time = dataArray[5] | (dataArray[6] << 8);
@@ -2530,48 +2649,26 @@
                     fightSettings.spaceTime = dataArray[9] | (dataArray[10] << 8);
                     
                     updateFightSettingsDisplay();
-                    
-                    // 如果正在初始化，更新初始化状态
-                    if (!connectionManager.isDeviceInitialized) {
-                        console.log('打怪设置读取成功');
-                    }
                 }
-                // 钓鱼设置报告 (0xFC)
                 else if (reportType === 0xFC) {
-                    // 这是钓鱼设置报告
-                    // 从两个字节组合16位值（低字节在前）
                     fishingSettings.f11Interval = dataArray[1] | (dataArray[2] << 8);
                     fishingSettings.autoBaitEnabled = dataArray[3] === 1;
-                    
-                    // F8重新抛竿间隔（毫秒）- 占用3个字节（第4-6字节）
                     fishingSettings.f8Cycle = dataArray[4] | (dataArray[5] << 8) | (dataArray[6] << 16);
-                    
-                    // 反传送F3开关（第7字节）
                     antiTeleportEnabled = dataArray[7] === 1;
                     
                     updateFishingSettingsDisplay();
                     updateAntiTeleportButtons();
-                    
-                    // 如果正在初始化，更新初始化状态
-                    if (!connectionManager.isDeviceInitialized) {
-                        console.log('钓鱼设置读取成功');
-                    }
                 }
-                // Ping响应 (0xFA)
                 else if (reportType === 0xFA) {
-                    // Ping响应，不更新显示
+                    // Ping响应
                 }
-                // 兼容处理（没有标记的情况）
                 else {
-                    // 尝试检查是否是时间设置数据（没有标记的情况）
-                    // 检查数据是否看起来像是时间设置（4个16位值）
                     if (dataArray.length >= 9) {
                         const testTime1h = dataArray[1] | (dataArray[2] << 8);
                         const testTime2h = dataArray[3] | (dataArray[4] << 8);
                         const testTime3h = dataArray[5] | (dataArray[6] << 8);
                         const testTime4h = dataArray[7] | (dataArray[8] << 8);
                         
-                        // 检查这些值是否在合理范围内（1-480分钟）
                         if (testTime1h >= 1 && testTime1h <= 480 &&
                             testTime2h >= 1 && testTime2h <= 480 &&
                             testTime3h >= 1 && testTime3h <= 480 &&
@@ -2579,25 +2676,17 @@
                             
                             console.log('检测到未标记的时间设置:', {testTime1h, testTime2h, testTime3h, testTime4h});
                             
-                            // 更新设置
                             settings.time1h = testTime1h;
                             settings.time2h = testTime2h;
                             settings.time3h = testTime3h;
                             settings.time4h = testTime4h;
                             
-                            // 尝试获取钓鱼模式（可能在后续字节）
                             if (dataArray.length >= 15) {
                                 status.fishingModeType = dataArray[14];
                             }
                             
-                            // 更新显示
                             updateSettingsDisplay();
                             updateFishingModeButtons();
-                            
-                            // 如果正在初始化，更新初始化状态
-                            if (!connectionManager.isDeviceInitialized) {
-                                console.log('时间设置读取成功(兼容模式)');
-                            }
                         }
                     }
                 }
@@ -2607,31 +2696,26 @@
         // 发送控制命令到设备
         async function sendControlCommand(command, value = 0, retryCount = 0) {
             if (!device || !device.opened || !isConnected) {
-                // 设备未连接，自动断开
                 await connectionManager.handleImmediateDisconnection();
                 return false;
             }
             
             const now = Date.now();
             if (now - lastCommandTime < 100) {
-                // 防止发送过快
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
             
             try {
-                // 创建控制报告 (Report ID 5)
                 const reportId = 5;
-                // 发送16位值：低8位 + 高8位
                 const data = new Uint8Array([
                     command, 
-                    value & 0xFF,       // 低8位
-                    (value >> 8) & 0xFF, // 高8位
+                    value & 0xFF,
+                    (value >> 8) & 0xFF,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                 ]);
                 
                 console.log('发送命令:', command.toString(16), '值:', value);
                 
-                // 设置超时
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('命令发送超时')), 1000);
                 });
@@ -2645,14 +2729,12 @@
             } catch (error) {
                 console.error('发送命令失败:', error);
                 
-                // 最多重试1次
                 if (retryCount < 1) {
                     console.log('重试发送命令...');
                     await new Promise(resolve => setTimeout(resolve, 100));
                     return await sendControlCommand(command, value, retryCount + 1);
                 }
                 
-                // 重试失败，认为设备已断开
                 await connectionManager.handleImmediateDisconnection();
                 return false;
             }
@@ -2661,11 +2743,10 @@
         // 获取设备设置
         async function getSettings() {
             console.log('请求获取设备设置');
-            const success = await sendControlCommand(1); // CMD_GET_SETTINGS
+            const success = await sendControlCommand(1);
             if (success) {
-                // 立即获取一次状态
                 setTimeout(() => {
-                    sendControlCommand(8); // CMD_GET_STATUS
+                    sendControlCommand(8);
                 }, 100);
             }
             return success;
@@ -2677,8 +2758,7 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x15); // CMD_GET_FIGHT_SETTINGS
+            const success = await sendControlCommand(0x15);
             if (success) {
                 console.log('打怪设置请求已发送');
             }
@@ -2690,8 +2770,7 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x18); // CMD_GET_FISHING_SETTINGS
+            const success = await sendControlCommand(0x18);
             if (success) {
                 console.log('钓鱼设置请求已发送');
             }
@@ -2703,41 +2782,28 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x0E, mode); // CMD_SET_FISHING_MODE
+            const success = await sendControlCommand(0x0E, mode);
             if (success) {
                 status.fishingModeType = mode;
-                
-                // 更新按钮状态
                 updateFishingModeButtons();
-                
-                // 更新状态显示
                 document.getElementById('gameMode').textContent = mode === 0 ? '怀旧服' : '正式服';
-                
-                if (mode === 0) {
-                    showNotification('已切换到怀旧服模式', 'success');
-                } else {
-                    showNotification('已切换到正式服模式', 'success');
-                }
+                showNotification(mode === 0 ? '已切换到怀旧服模式' : '已切换到正式服模式', 'success');
             }
         }
         
         // 设置循环人数
         async function setPersonCount(count) {
-            const success = await sendControlCommand(9, count); // CMD_SET_PERSON_COUNT
+            const success = await sendControlCommand(9, count);
             if (success) {
                 cyclePersonCount = count;
                 updatePersonDisplay();
                 updateTaskbar();
                 updatePageTitle();
-                
                 if (count === 0) {
                     showNotification('循环人数已设置为无限', 'success');
                 } else {
                     showNotification('循环人数已设置为 ' + count + ' 人', 'success');
                 }
-                
-                // 更新按钮状态
                 updatePersonButtons();
             }
         }
@@ -2748,16 +2814,13 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
             if (status.fightingMode) {
                 showNotification('请先关闭打怪模式', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x0B, 1); // 自定义命令：启动钓鱼
+            const success = await sendControlCommand(0x0B, 1);
             if (success) {
                 showNotification('钓鱼模式已启动', 'success');
-                // 状态将通过定时更新自动刷新
             }
         }
         
@@ -2767,11 +2830,9 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x0B, 0); // 自定义命令：关闭钓鱼
+            const success = await sendControlCommand(0x0B, 0);
             if (success) {
                 showNotification('钓鱼模式已关闭', 'success');
-                // 状态将通过定时更新自动刷新
             }
         }
         
@@ -2781,16 +2842,13 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
             if (status.fishingMode) {
                 showNotification('请先关闭钓鱼模式', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x0C, 1); // 自定义命令：启动打怪
+            const success = await sendControlCommand(0x0C, 1);
             if (success) {
                 showNotification('打怪模式已启动', 'success');
-                // 状态将通过定时更新自动刷新
             }
         }
         
@@ -2800,11 +2858,9 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
-            const success = await sendControlCommand(0x0C, 0); // 自定义命令：关闭打怪
+            const success = await sendControlCommand(0x0C, 0);
             if (success) {
                 showNotification('打怪模式已关闭', 'success');
-                // 状态将通过定时更新自动刷新
             }
         }
         
@@ -2814,43 +2870,28 @@
                 showNotification('请先连接设备', 'warning');
                 return;
             }
-            
             if (!status.fishingMode) {
                 showNotification('当前未在钓鱼模式', 'warning');
                 return;
             }
-            
-            // 模式映射：0=无定时, 1=绿灯, 2=黄灯, 3=红灯, 4=紫灯
-            const modeValue = mode;
-            const success = await sendControlCommand(0x0D, modeValue); // 自定义命令：切换循环模式
-            
+            const success = await sendControlCommand(0x0D, mode);
             if (success) {
                 const modeNames = ['无定时', '绿灯', '黄灯', '红灯', '紫灯'];
                 const modeName = modeNames[mode] || '未知模式';
                 showNotification(`已切换到${modeName}模式`, 'success');
-                // 状态将通过定时更新自动刷新
             }
         }
         
         // 设置绿灯模式默认时间并保存
         async function setDefaultTime1h() {
             const value = 60;
-            const sliderId = 'time1hSlider';
-            const displayId = 'time1hDisplay';
-            const savingId = 'time1hSaving';
-            
-            // 更新滑块和显示
-            document.getElementById(sliderId).value = value;
-            document.getElementById(displayId).textContent = value + '分钟';
-            
-            // 显示保存中提示
-            showSavingIndicator(savingId, '保存中...');
-            
-            // 保存到设备
-            const success = await sendControlCommand(2, value); // CMD_SET_TIME_1H
+            document.getElementById('time1hSlider').value = value;
+            document.getElementById('time1hDisplay').textContent = value + '分钟';
+            showSavingIndicator('time1hSaving', '保存中...');
+            const success = await sendControlCommand(2, value);
             if (success) {
                 settings.time1h = value;
-                showSavingIndicator(savingId, '已保存默认值60分钟');
+                showSavingIndicator('time1hSaving', '已保存默认值60分钟');
                 showSaveDelay();
                 showNotification('绿灯模式已恢复默认值60分钟', 'success');
             }
@@ -2859,22 +2900,13 @@
         // 设置黄灯模式默认时间并保存
         async function setDefaultTime2h() {
             const value = 120;
-            const sliderId = 'time2hSlider';
-            const displayId = 'time2hDisplay';
-            const savingId = 'time2hSaving';
-            
-            // 更新滑块和显示
-            document.getElementById(sliderId).value = value;
-            document.getElementById(displayId).textContent = value + '分钟';
-            
-            // 显示保存中提示
-            showSavingIndicator(savingId, '保存中...');
-            
-            // 保存到设备
-            const success = await sendControlCommand(3, value); // CMD_SET_TIME_2H
+            document.getElementById('time2hSlider').value = value;
+            document.getElementById('time2hDisplay').textContent = value + '分钟';
+            showSavingIndicator('time2hSaving', '保存中...');
+            const success = await sendControlCommand(3, value);
             if (success) {
                 settings.time2h = value;
-                showSavingIndicator(savingId, '已保存默认值120分钟');
+                showSavingIndicator('time2hSaving', '已保存默认值120分钟');
                 showSaveDelay();
                 showNotification('黄灯模式已恢复默认值120分钟', 'success');
             }
@@ -2883,22 +2915,13 @@
         // 设置红灯模式默认时间并保存
         async function setDefaultTime3h() {
             const value = 180;
-            const sliderId = 'time3hSlider';
-            const displayId = 'time3hDisplay';
-            const savingId = 'time3hSaving';
-            
-            // 更新滑块和显示
-            document.getElementById(sliderId).value = value;
-            document.getElementById(displayId).textContent = value + '分钟';
-            
-            // 显示保存中提示
-            showSavingIndicator(savingId, '保存中...');
-            
-            // 保存到设备
-            const success = await sendControlCommand(4, value); // CMD_SET_TIME_3H
+            document.getElementById('time3hSlider').value = value;
+            document.getElementById('time3hDisplay').textContent = value + '分钟';
+            showSavingIndicator('time3hSaving', '保存中...');
+            const success = await sendControlCommand(4, value);
             if (success) {
                 settings.time3h = value;
-                showSavingIndicator(savingId, '已保存默认值180分钟');
+                showSavingIndicator('time3hSaving', '已保存默认值180分钟');
                 showSaveDelay();
                 showNotification('红灯模式已恢复默认值180分钟', 'success');
             }
@@ -2907,22 +2930,13 @@
         // 设置紫灯模式默认时间并保存
         async function setDefaultTime4h() {
             const value = 240;
-            const sliderId = 'time4hSlider';
-            const displayId = 'time4hDisplay';
-            const savingId = 'time4hSaving';
-            
-            // 更新滑块和显示
-            document.getElementById(sliderId).value = value;
-            document.getElementById(displayId).textContent = value + '分钟';
-            
-            // 显示保存中提示
-            showSavingIndicator(savingId, '保存中...');
-            
-            // 保存到设备
-            const success = await sendControlCommand(5, value); // CMD_SET_TIME_4H
+            document.getElementById('time4hSlider').value = value;
+            document.getElementById('time4hDisplay').textContent = value + '分钟';
+            showSavingIndicator('time4hSaving', '保存中...');
+            const success = await sendControlCommand(5, value);
             if (success) {
                 settings.time4h = value;
-                showSavingIndicator(savingId, '已保存默认值240分钟');
+                showSavingIndicator('time4hSaving', '已保存默认值240分钟');
                 showSaveDelay();
                 showNotification('紫灯模式已恢复默认值240分钟', 'success');
             }
@@ -2933,7 +2947,7 @@
             const value = parseInt(document.getElementById('time1hSlider').value);
             if (value >= 1 && value <= 120) {
                 showSavingIndicator('time1hSaving', '保存中...');
-                const success = await sendControlCommand(2, value); // CMD_SET_TIME_1H
+                const success = await sendControlCommand(2, value);
                 if (success) {
                     settings.time1h = value;
                     showSavingIndicator('time1hSaving', '已保存到设备');
@@ -2947,7 +2961,7 @@
             const value = parseInt(document.getElementById('time2hSlider').value);
             if (value >= 1 && value <= 240) {
                 showSavingIndicator('time2hSaving', '保存中...');
-                const success = await sendControlCommand(3, value); // CMD_SET_TIME_2H
+                const success = await sendControlCommand(3, value);
                 if (success) {
                     settings.time2h = value;
                     showSavingIndicator('time2hSaving', '已保存到设备');
@@ -2961,7 +2975,7 @@
             const value = parseInt(document.getElementById('time3hSlider').value);
             if (value >= 1 && value <= 360) {
                 showSavingIndicator('time3hSaving', '保存中...');
-                const success = await sendControlCommand(4, value); // CMD_SET_TIME_3H
+                const success = await sendControlCommand(4, value);
                 if (success) {
                     settings.time3h = value;
                     showSavingIndicator('time3hSaving', '已保存到设备');
@@ -2975,7 +2989,7 @@
             const value = parseInt(document.getElementById('time4hSlider').value);
             if (value >= 1 && value <= 480) {
                 showSavingIndicator('time4hSaving', '保存中...');
-                const success = await sendControlCommand(5, value); // CMD_SET_TIME_4H
+                const success = await sendControlCommand(5, value);
                 if (success) {
                     settings.time4h = value;
                     showSavingIndicator('time4hSaving', '已保存到设备');
@@ -2997,18 +3011,16 @@
                 cyclePersonCountElement.textContent = cyclePersonCount + '人';
             }
             
-            // 显示当前第几人（从1开始）
             if (currentPerson > 0) {
                 currentPersonElement.textContent = currentPerson;
             } else {
                 currentPersonElement.textContent = '--';
             }
             
-            // 更新按钮状态
             updatePersonButtons();
         }
         
-        // 重置人数选择按钮状态（未连接时）
+        // 重置人数选择按钮状态
         function resetPersonButtons() {
             const buttons = document.querySelectorAll('.person-btn');
             buttons.forEach(btn => {
@@ -3020,7 +3032,6 @@
         function updatePersonButtons() {
             const buttons = document.querySelectorAll('.person-btn');
             buttons.forEach(btn => {
-                // 获取按钮对应的值
                 let btnValue = 0;
                 if (btn.textContent === '无限') {
                     btnValue = 0;
@@ -3038,59 +3049,40 @@
         
         // 更新打怪设置显示
         function updateFightSettingsDisplay() {
-            // F5
             if (fightSettings.f5Time !== null) {
                 document.getElementById('fightF5Display').textContent = (fightSettings.f5Time / 10).toFixed(1) + '秒';
                 document.getElementById('fightF5Input').value = (fightSettings.f5Time / 10).toFixed(1);
-                console.log('更新打怪F5设置显示:', fightSettings.f5Time);
             }
-            
-            // F6
             if (fightSettings.f6Time !== null) {
                 document.getElementById('fightF6Display').textContent = (fightSettings.f6Time / 10).toFixed(1) + '秒';
                 document.getElementById('fightF6Input').value = (fightSettings.f6Time / 10).toFixed(1);
             }
-            
-            // F7
             if (fightSettings.f7Time !== null) {
                 document.getElementById('fightF7Display').textContent = (fightSettings.f7Time / 10).toFixed(1) + '秒';
                 document.getElementById('fightF7Input').value = (fightSettings.f7Time / 10).toFixed(1);
             }
-            
-            // F9
             if (fightSettings.f9Time !== null) {
                 document.getElementById('fightF9Display').textContent = (fightSettings.f9Time / 10).toFixed(1) + '秒';
                 document.getElementById('fightF9Input').value = (fightSettings.f9Time / 10).toFixed(1);
             }
-            
-            // 空格
             if (fightSettings.spaceTime !== null) {
                 document.getElementById('fightSpaceDisplay').textContent = (fightSettings.spaceTime / 10).toFixed(1) + '秒';
                 document.getElementById('fightSpaceInput').value = (fightSettings.spaceTime / 10).toFixed(1);
             }
-            
-            // 更新按钮状态
             updateFightSaveButtons();
         }
         
         // 更新钓鱼设置显示
         function updateFishingSettingsDisplay() {
-            // F11间隔
             if (fishingSettings.f11Interval !== null) {
                 document.getElementById('fishingF11Display').textContent = fishingSettings.f11Interval + '秒';
                 document.getElementById('fishingF11Input').value = fishingSettings.f11Interval;
-                console.log('更新钓鱼F11设置显示:', fishingSettings.f11Interval);
             }
-            
-            // F8间隔
             if (fishingSettings.f8Cycle !== null) {
                 const seconds = (fishingSettings.f8Cycle / 1000).toFixed(1);
                 document.getElementById('fishingF8Display').textContent = seconds + '秒';
                 document.getElementById('fishingF8Input').value = seconds;
-                console.log('更新钓鱼F8设置显示:', fishingSettings.f8Cycle, '毫秒');
             }
-            
-            // 自动上饵开关
             if (fishingSettings.autoBaitEnabled !== null) {
                 autoBaitDisplay.textContent = fishingSettings.autoBaitEnabled ? '开启' : '关闭';
                 if (fishingSettings.autoBaitEnabled) {
@@ -3100,29 +3092,20 @@
                     autoBaitOnBtn.className = 'auto-bait-btn';
                     autoBaitOffBtn.className = 'auto-bait-btn auto-bait-btn-inactive';
                 }
-                console.log('更新自动上饵开关显示:', fishingSettings.autoBaitEnabled);
             }
-            
-            // 更新按钮状态
             updateFishingSaveButtons();
         }
         
         // 更新打怪保存按钮状态
         function updateFightSaveButtons() {
-            const inputs = [
-                'fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input',
-                'fightSpaceInput'
-            ];
-            
+            const inputs = ['fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input', 'fightSpaceInput'];
             inputs.forEach(id => {
                 const input = document.getElementById(id);
                 const btn = document.getElementById(id.replace('Input', 'SaveBtn'));
                 if (input && btn) {
-                    // 检查输入值是否有效
                     const value = parseFloat(input.value);
                     const min = parseFloat(input.min);
                     const max = parseFloat(input.max);
-                    
                     if (value >= min && value <= max && !isNaN(value)) {
                         btn.disabled = false;
                     } else {
@@ -3134,11 +3117,7 @@
         
         // 更新钓鱼保存按钮状态
         function updateFishingSaveButtons() {
-            const inputs = [
-                'fishingF11Input',
-                'fishingF8Input'
-            ];
-            
+            const inputs = ['fishingF11Input', 'fishingF8Input'];
             inputs.forEach(id => {
                 const input = document.getElementById(id);
                 const btn = document.getElementById(id.replace('Input', 'SaveBtn'));
@@ -3146,7 +3125,6 @@
                     const value = parseFloat(input.value);
                     const min = parseFloat(input.min);
                     const max = parseFloat(input.max);
-                    
                     if (value >= min && value <= max && !isNaN(value)) {
                         btn.disabled = false;
                     } else {
@@ -3161,11 +3139,9 @@
             if (statusInterval) {
                 clearInterval(statusInterval);
             }
-            
-            // 每1秒获取一次状态
             statusInterval = setInterval(async () => {
                 if (isConnected) {
-                    await sendControlCommand(8); // CMD_GET_STATUS
+                    await sendControlCommand(8);
                 }
             }, 1000);
         }
@@ -3174,77 +3150,57 @@
         function updateSettingsDisplay() {
             console.log('更新设置显示:', settings);
             
-            // 更新绿灯模式
             if (settings.time1h !== null) {
                 document.getElementById('time1hDisplay').textContent = settings.time1h + '分钟';
                 document.getElementById('time1hSlider').value = settings.time1h;
-                console.log('设置绿灯模式:', settings.time1h + '分钟');
             } else {
                 document.getElementById('time1hDisplay').textContent = '--分钟';
             }
-            
-            // 更新黄灯模式
             if (settings.time2h !== null) {
                 document.getElementById('time2hDisplay').textContent = settings.time2h + '分钟';
                 document.getElementById('time2hSlider').value = settings.time2h;
-                console.log('设置黄灯模式:', settings.time2h + '分钟');
             } else {
                 document.getElementById('time2hDisplay').textContent = '--分钟';
             }
-            
-            // 更新红灯模式
             if (settings.time3h !== null) {
                 document.getElementById('time3hDisplay').textContent = settings.time3h + '分钟';
                 document.getElementById('time3hSlider').value = settings.time3h;
-                console.log('设置红灯模式:', settings.time3h + '分钟');
             } else {
                 document.getElementById('time3hDisplay').textContent = '--分钟';
             }
-            
-            // 更新紫灯模式
             if (settings.time4h !== null) {
                 document.getElementById('time4hDisplay').textContent = settings.time4h + '分钟';
                 document.getElementById('time4hSlider').value = settings.time4h;
-                console.log('设置紫灯模式:', settings.time4h + '分钟');
             } else {
                 document.getElementById('time4hDisplay').textContent = '--分钟';
             }
             
-            // 重置保存提示
             resetSavingIndicators();
         }
 
         // 更新状态显示
         function updateStatusDisplay() {
-            // 更新倒计时
             if (status.modeActive > 0 && status.fishingMode) {
-                // 格式化显示
                 const hoursStr = status.hours.toString().padStart(2, '0');
                 const minutesStr = status.minutes.toString().padStart(2, '0');
                 const secondsStr = status.seconds.toString().padStart(2, '0');
                 
                 document.getElementById('countdown').textContent = `${hoursStr}:${minutesStr}:${secondsStr}`;
                 
-                // 根据 modeActive 显示对应的模式名称
                 const modeNames = ['无定时', '绿灯', '黄灯', '红灯', '紫灯'];
-                
-                // 确保 modeActive 在有效范围内
                 if (status.modeActive >= 0 && status.modeActive <= 4) {
                     document.getElementById('currentMode').textContent = modeNames[status.modeActive];
                 } else {
                     document.getElementById('currentMode').textContent = '无定时';
                 }
             } else if (status.fishingMode && status.modeActive === 0) {
-                // 钓鱼模式下，无定时模式
                 document.getElementById('countdown').textContent = '--:--:--';
                 document.getElementById('currentMode').textContent = '无定时';
             } else {
-                // 非钓鱼模式
                 document.getElementById('countdown').textContent = '--:--:--';
                 document.getElementById('currentMode').textContent = '未计时';
             }
             
-            // 更新其他状态
             document.getElementById('fishingMode').textContent = status.fishingMode ? '开启' : '关闭';
             document.getElementById('fightingMode').textContent = status.fightingMode ? '开启' : '关闭';
             document.getElementById('gameMode').textContent = status.fishingModeType === -1 ? '--' : (status.fishingModeType === 0 ? '怀旧服' : '正式服');
@@ -3264,13 +3220,10 @@
         function initSliders() {
             const sliders = document.querySelectorAll('.slider');
             sliders.forEach(slider => {
-                // 输入时只更新显示，不发送到设备
                 slider.addEventListener('input', function() {
                     const displayId = this.id.replace('Slider', 'Display');
                     const value = this.value;
                     document.getElementById(displayId).textContent = value + '分钟';
-                    
-                    // 显示预览提示
                     const savingId = this.id.replace('Slider', 'Saving');
                     showSavingIndicator(savingId, '本地预览中');
                 });
@@ -3279,19 +3232,13 @@
         
         // 打怪设置相关函数
         async function saveFightF5() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fightF5Input');
             const value = parseFloat(input.value);
-            
             if (value >= 0.1 && value <= 3600) {
                 showFightSavingIndicator('fightF5Saving', '保存中...');
-                // 转换为0.1秒单位
                 const scaledValue = Math.round(value * 10);
-                const success = await sendControlCommand(0x10, scaledValue); // CMD_SET_FIGHT_F5_TIME
+                const success = await sendControlCommand(0x10, scaledValue);
                 if (success) {
                     showFightSavingIndicator('fightF5Saving', '已保存');
                     showSaveDelay();
@@ -3302,18 +3249,13 @@
         }
         
         async function saveFightF6() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fightF6Input');
             const value = parseFloat(input.value);
-            
             if (value >= 0.1 && value <= 3600) {
                 showFightSavingIndicator('fightF6Saving', '保存中...');
                 const scaledValue = Math.round(value * 10);
-                const success = await sendControlCommand(0x11, scaledValue); // CMD_SET_FIGHT_F6_TIME
+                const success = await sendControlCommand(0x11, scaledValue);
                 if (success) {
                     showFightSavingIndicator('fightF6Saving', '已保存');
                     showSaveDelay();
@@ -3324,18 +3266,13 @@
         }
         
         async function saveFightF7() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fightF7Input');
             const value = parseFloat(input.value);
-            
             if (value >= 0.1 && value <= 3600) {
                 showFightSavingIndicator('fightF7Saving', '保存中...');
                 const scaledValue = Math.round(value * 10);
-                const success = await sendControlCommand(0x12, scaledValue); // CMD_SET_FIGHT_F7_TIME
+                const success = await sendControlCommand(0x12, scaledValue);
                 if (success) {
                     showFightSavingIndicator('fightF7Saving', '已保存');
                     showSaveDelay();
@@ -3346,18 +3283,13 @@
         }
         
         async function saveFightF9() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fightF9Input');
             const value = parseFloat(input.value);
-            
             if (value >= 0.1 && value <= 3600) {
                 showFightSavingIndicator('fightF9Saving', '保存中...');
                 const scaledValue = Math.round(value * 10);
-                const success = await sendControlCommand(0x13, scaledValue); // CMD_SET_FIGHT_F9_TIME
+                const success = await sendControlCommand(0x13, scaledValue);
                 if (success) {
                     showFightSavingIndicator('fightF9Saving', '已保存');
                     showSaveDelay();
@@ -3368,18 +3300,13 @@
         }
         
         async function saveFightSpace() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fightSpaceInput');
             const value = parseFloat(input.value);
-            
             if (value >= 0.1 && value <= 3600) {
                 showFightSavingIndicator('fightSpaceSaving', '保存中...');
                 const scaledValue = Math.round(value * 10);
-                const success = await sendControlCommand(0x14, scaledValue); // CMD_SET_FIGHT_SPACE_TIME
+                const success = await sendControlCommand(0x14, scaledValue);
                 if (success) {
                     showFightSavingIndicator('fightSpaceSaving', '已保存');
                     showSaveDelay();
@@ -3415,36 +3342,23 @@
         }
         
         async function resetAllFightSettings() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
-            if (!confirm('确定要重置所有打怪设置为默认值吗？')) {
-                return;
-            }
-            
-            const success = await sendControlCommand(0x16, 0); // CMD_RESET_FIGHT_SETTINGS
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (!confirm('确定要重置所有打怪设置为默认值吗？')) return;
+            const success = await sendControlCommand(0x16, 0);
             if (success) {
                 showNotification('所有打怪设置已重置为默认值', 'success');
-                // 稍后重新获取设置
                 setTimeout(getFightSettings, 500);
             }
         }
         
         // 钓鱼设置相关函数
         async function saveFishingF11() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fishingF11Input');
             const value = parseInt(input.value);
-            
             if (value >= 1 && value <= 3600) {
                 showFishingSavingIndicator('fishingF11Saving', '保存中...');
-                const success = await sendControlCommand(0x17, value); // CMD_SET_FISHING_F11_INTERVAL
+                const success = await sendControlCommand(0x17, value);
                 if (success) {
                     showFishingSavingIndicator('fishingF11Saving', '已保存');
                     showSaveDelay();
@@ -3454,21 +3368,14 @@
             }
         }
         
-        // 新增：保存F8重新抛竿间隔
         async function saveFishingF8() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fishingF8Input');
             const value = parseFloat(input.value);
-            
             if (value >= 0.5 && value <= 600) {
                 showFishingSavingIndicator('fishingF8Saving', '保存中...');
-                // 转换为毫秒
                 const scaledValue = Math.round(value * 1000);
-                const success = await sendControlCommand(0x1B, scaledValue); // CMD_SET_FISHING_F8_CYCLE
+                const success = await sendControlCommand(0x1B, scaledValue);
                 if (success) {
                     showFishingSavingIndicator('fishingF8Saving', '已保存');
                     showSaveDelay();
@@ -3483,22 +3390,16 @@
             updateFishingSaveButtons();
         }
         
-        // 新增：设置F8默认值
         function setDefaultFishingF8() {
             document.getElementById('fishingF8Input').value = DEFAULT_FISHING_F8;
             updateFishingSaveButtons();
         }
         
-        // 设置自动上饵开关
         async function setAutoBaitEnabled(enabled) {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const value = enabled ? 1 : 0;
             showFishingSavingIndicator('autoBaitSaving', '保存中...');
-            const success = await sendControlCommand(0x1A, value); // CMD_SET_AUTO_BAIT_ENABLED
+            const success = await sendControlCommand(0x1A, value);
             if (success) {
                 fishingSettings.autoBaitEnabled = enabled;
                 updateFishingSettingsDisplay();
@@ -3508,15 +3409,10 @@
             }
         }
         
-        // 新增：设置反传送F3开关
         async function setAntiTeleportEnabled(enabled) {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const value = enabled ? 1 : 0;
-            const success = await sendControlCommand(0x1C, value); // CMD_SET_ANTI_TELEPORT_ENABLED
+            const success = await sendControlCommand(0x1C, value);
             if (success) {
                 antiTeleportEnabled = enabled;
                 updateAntiTeleportButtons();
@@ -3525,64 +3421,33 @@
         }
         
         async function resetAllFishingSettings() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-            
-            if (!confirm('确定要重置钓鱼设置为默认值吗？')) {
-                return;
-            }
-            
-            const success = await sendControlCommand(0x19, 0); // CMD_RESET_FISHING_SETTINGS
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (!confirm('确定要重置钓鱼设置为默认值吗？')) return;
+            const success = await sendControlCommand(0x19, 0);
             if (success) {
                 showNotification('钓鱼设置已重置为默认值', 'success');
-                // 稍后重新获取设置
                 setTimeout(getFishingSettings, 500);
             }
         }
         
-        // ========== 新增：全部恢复默认功能 ==========
+        // 全部恢复默认功能
         async function resetAllToDefault() {
-            if (!isConnected) {
-                showNotification('请先连接设备', 'warning');
-                return;
-            }
-
-            if (!confirm('确定要将所有设置恢复为默认值吗？\n（包括：换人时间、打怪设置、钓鱼设置、反传送、循环人数）')) {
-                return;
-            }
-
+            if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
+            if (!confirm('确定要将所有设置恢复为默认值吗？\n（包括：换人时间、打怪设置、钓鱼设置、反传送、循环人数）')) return;
             showNotification('正在重置所有设置为默认值...', 'info');
-
-            // 1. 重置时间设置 (使用命令7: CMD_RESET_SETTINGS)
-            await sendControlCommand(0x07, 0); // CMD_RESET_SETTINGS
-
-            // 2. 重置打怪设置
-            await sendControlCommand(0x16, 0); // CMD_RESET_FIGHT_SETTINGS
-
-            // 3. 重置钓鱼设置
-            await sendControlCommand(0x19, 0); // CMD_RESET_FISHING_SETTINGS
-
-            // 4. 设置默认钓鱼模式 (怀旧服)
+            await sendControlCommand(0x07, 0);
+            await sendControlCommand(0x16, 0);
+            await sendControlCommand(0x19, 0);
             await sendControlCommand(0x0E, DEFAULT_FISHING_MODE);
-
-            // 5. 设置默认循环人数 (0 = 无限)
             await sendControlCommand(0x09, DEFAULT_PERSON_COUNT);
-
-            // 6. 设置默认反传送开关
             await sendControlCommand(0x1C, DEFAULT_ANTI_TELEPORT_ENABLED ? 1 : 0);
-
-            // 等待一小会儿让设备处理
             setTimeout(() => {
-                // 重新获取所有设置以更新界面
                 getSettings();
                 getFightSettings();
                 getFishingSettings();
                 showNotification('所有设置已恢复为默认值', 'success');
             }, 800);
         }
-        // ========================================
         
         // 页面加载时初始化
         window.addEventListener('load', async () => {
@@ -3590,24 +3455,15 @@
             updateConnectionStatus();
             initSliders();
             
-            // 初始显示
             resetDisplay();
             updateControlButtons();
             updateFishingModeButtons();
             
-            // 绑定按钮事件
             connectBtn.addEventListener('click', connectDevice);
             disconnectBtn.addEventListener('click', disconnectDevice);
-            
-            // 绑定任务栏重置按钮
             taskbarResetAllBtn.addEventListener('click', resetAllToDefault);
             
-            // 初始化打怪设置输入事件
-            const fightInputs = [
-                'fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input',
-                'fightSpaceInput'
-            ];
-            
+            const fightInputs = ['fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input', 'fightSpaceInput'];
             fightInputs.forEach(id => {
                 const input = document.getElementById(id);
                 if (input) {
@@ -3616,12 +3472,7 @@
                 }
             });
             
-            // 初始化钓鱼设置输入事件
-            const fishingInputs = [
-                'fishingF11Input',
-                'fishingF8Input'
-            ];
-            
+            const fishingInputs = ['fishingF11Input', 'fishingF8Input'];
             fishingInputs.forEach(id => {
                 const input = document.getElementById(id);
                 if (input) {
@@ -3630,72 +3481,54 @@
                 }
             });
             
-            // 初始更新按钮状态
             updateFightSaveButtons();
             updateFishingSaveButtons();
             
-            // 设置设备输入报告监听
             if ('hid' in navigator) {
-                // 页面加载时尝试自动重新连接
                 const reconnected = await autoReconnectOnLoad();
-                
                 if (!reconnected) {
                     showNotification('请点击"连接设备"按钮连接设备', 'info');
                 }
             }
             
-            // 处理页面关闭
             window.addEventListener('beforeunload', () => {
                 if (isConnected) {
                     disconnectDevice();
                 }
             });
             
-            // 禁用F5、F11、F12功能键
+            // 禁用F5、F11、F12等功能键
             document.addEventListener('keydown', function(e) {
-                // 禁用F5刷新
                 if (e.key === 'F5' || e.keyCode === 116) {
                     e.preventDefault();
                     showNotification('F5刷新功能已禁用', 'warning');
                     return false;
                 }
-
-                // 禁用F6
                 if (e.key === 'F6' || e.keyCode === 117) {
                     e.preventDefault();
                     showNotification('F6已禁用', 'warning');
                     return false;
                 }
-
-                // 禁用F7
                 if (e.key === 'F7' || e.keyCode === 118) {
                     e.preventDefault();
                     showNotification('F7已禁用', 'warning');
                     return false;
-                }                
-
-                // 禁用F11全屏
+                }
                 if (e.key === 'F11' || e.keyCode === 122) {
                     e.preventDefault();
                     showNotification('F11全屏功能已禁用', 'warning');
                     return false;
                 }
-                
-                // 禁用F12开发者工具
                 if (e.key === 'F12' || e.keyCode === 123) {
                     e.preventDefault();
                     showNotification('F12开发者工具已禁用', 'warning');
                     return false;
                 }
-                
-                // 禁用Ctrl+R刷新
                 if (e.ctrlKey && (e.key === 'r' || e.key === 'R' || e.keyCode === 82)) {
                     e.preventDefault();
                     showNotification('Ctrl+R刷新功能已禁用', 'warning');
                     return false;
                 }
-                
-                // 禁用Ctrl+Shift+R硬刷新
                 if (e.ctrlKey && e.shiftKey && (e.key === 'r' || e.key === 'R' || e.keyCode === 82)) {
                     e.preventDefault();
                     showNotification('Ctrl+Shift+R硬刷新功能已禁用', 'warning');
@@ -3703,7 +3536,6 @@
                 }
             }, true);
             
-            // 禁用右键菜单
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 showNotification('右键菜单已禁用', 'warning');
@@ -3740,15 +3572,15 @@
         window.resetAllFightSettings = resetAllFightSettings;
         window.getFightSettings = getFightSettings;
         window.saveFishingF11 = saveFishingF11;
-        window.saveFishingF8 = saveFishingF8; // 新增
+        window.saveFishingF8 = saveFishingF8;
         window.setDefaultFishingF11 = setDefaultFishingF11;
-        window.setDefaultFishingF8 = setDefaultFishingF8; // 新增
+        window.setDefaultFishingF8 = setDefaultFishingF8;
         window.setAutoBaitEnabled = setAutoBaitEnabled;
-        window.setAntiTeleportEnabled = setAntiTeleportEnabled; // 新增
+        window.setAntiTeleportEnabled = setAntiTeleportEnabled;
         window.resetAllFishingSettings = resetAllFishingSettings;
         window.getFishingSettings = getFishingSettings;
-        // 导出全部恢复默认函数
         window.resetAllToDefault = resetAllToDefault;
+        window.closeFirmwareUpgradeModal = closeFirmwareUpgradeModal;
     </script>
 </body>
 </html>
