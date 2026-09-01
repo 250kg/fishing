@@ -102,7 +102,6 @@
             margin-bottom: 30px;
         }
         
-        /* 钓鱼模式选择行 */
         .fishing-mode-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -145,7 +144,6 @@
             border-color: #ddd;
         }
         
-        /* 控制按钮行 */
         .control-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -224,19 +222,12 @@
             border-color: #ffc107;
         }
         
-        /* 反传送F3按钮行 */
         .anti-teleport-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             align-items: center;
             margin: 10px 0;
-        }
-        
-        .anti-teleport-label {
-            font-weight: bold;
-            color: #764ba2;
-            min-width: 100px;
         }
         
         .anti-teleport-btn {
@@ -345,7 +336,6 @@
             transform: scale(1.2);
         }
         
-        /* 循环人数控制样式 */
         .person-control {
             background: white;
             border-radius: 15px;
@@ -560,7 +550,6 @@
             border-left: 5px solid #17a2b8;
         }
         
-        /* 新增：新固件升级提示弹窗样式 */
         .firmware-upgrade-overlay {
             position: fixed;
             top: 0;
@@ -656,15 +645,6 @@
             background: #dee2e6;
         }
         
-        .firmware-upgrade-modal .modal-footer-text {
-            font-size: 0.85em;
-            color: #999;
-            margin-top: 15px;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-        
-        /* 保存状态提示 */
         .saving-indicator {
             text-align: center;
             font-size: 0.9em;
@@ -703,7 +683,6 @@
             100% { opacity: 0; transform: translateY(-10px); }
         }
         
-        /* 任务栏样式 */
         #taskbar-indicator {
             position: fixed;
             bottom: 0;
@@ -782,7 +761,6 @@
             transform: translateY(-2px);
         }
         
-        /* 保存按钮容器 */
         .save-btn-container {
             display: flex;
             justify-content: center;
@@ -806,7 +784,6 @@
             font-weight: bold;
         }
         
-        /* 新增打怪设置样式 */
         .fight-settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -945,7 +922,6 @@
             opacity: 1;
         }
         
-        /* 新增钓鱼设置样式 */
         .fishing-settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1022,7 +998,6 @@
             box-shadow: none;
         }
         
-        /* 自动上饵开关按钮组 */
         .auto-bait-buttons {
             display: flex;
             gap: 10px;
@@ -1193,7 +1168,6 @@
                 font-size: 1.4em;
             }
             
-            /* 任务栏响应式 */
             #taskbar-indicator {
                 flex-direction: column;
                 gap: 10px;
@@ -1213,7 +1187,6 @@
     </style>
 </head>
 <body>
-    <!-- 新固件升级提示弹窗 -->
     <div class="firmware-upgrade-overlay" id="firmwareUpgradeOverlay">
         <div class="firmware-upgrade-modal">
             <div class="modal-icon">🔔</div>
@@ -1254,18 +1227,15 @@
         </div>
         
         <div class="content">
-            <!-- 控制面板 -->
             <div class="section">
                 <h2 class="section-title">🎮 控制面板</h2>
                 <div class="control-panel">
-                    <!-- 第一行：钓鱼模式选择 -->
                     <div class="fishing-mode-row">
                         <button class="fishing-mode-btn fishing-mode-btn-inactive" id="classicModeBtn" onclick="setFishingMode(0)">怀旧服钓鱼模式</button>
                         <button class="fishing-mode-btn fishing-mode-btn-inactive" id="retailModeBtn" onclick="setFishingMode(1)">正式服钓鱼模式</button>
                         • 怀旧服包括：60级服、TBC、WLK、大灾变、熊猫人、时光服等<br>
                     </div>
                     
-                    <!-- 第二行：钓鱼控制 -->
                     <div class="control-row">
                         <button class="control-btn" id="startFishingBtn" onclick="startFishing()">开启钓鱼</button>
                         <button class="control-btn" id="stopFishingBtn" onclick="stopFishing()">关闭钓鱼</button>
@@ -1276,7 +1246,6 @@
                         • 与鼠标悬停处互动设置为F10<br>
                     </div>
                     
-                    <!-- 第三行：定时模式 -->
                     <div class="control-row-timer">
                         <div class="timer-label">切换定时（对应钓鱼器右键灯色）:</div>
                         <button class="timer-btn" onclick="toggleCycleMode(0)">无定时</button>
@@ -1287,7 +1256,6 @@
 
                     </div>
                     
-                    <!-- 第四行：反传送F3控制 -->
                     <div class="anti-teleport-row">
                         <button class="anti-teleport-btn" id="antiTeleportOnBtn" onclick="setAntiTeleportEnabled(true)">开启反传送F3</button>
                         <button class="anti-teleport-btn" id="antiTeleportOffBtn" onclick="setAntiTeleportEnabled(false)">关闭反传送</button>
@@ -1298,7 +1266,6 @@
                         • 钓鱼过程中请勿移动人物打断钓鱼读条<br>
                     </div>
                     
-                    <!-- 第五行：打怪控制 -->
                     <div class="control-row">
                         <button class="control-btn" id="startFightingBtn" onclick="startFighting()">开启打怪</button>
                         <button class="control-btn" id="stopFightingBtn" onclick="stopFighting()">关闭打怪</button>
@@ -1337,13 +1304,11 @@
                 </div>
             </div>
             
-            <!-- 新增钓鱼设置部分 -->
             <div class="section">
                 <h2 class="section-title">🐟 上饵与抛竿设置</h2>
                 <p style="text-align: center; color: #666; margin-bottom: 20px;">设置F11上饵间隔（秒）和F8重新抛竿间隔（秒），并可开启或关闭自动上饵功能</p>
                 
                 <div class="fishing-settings-grid">
-                    <!-- F11间隔设置 -->
                     <div class="fishing-setting-item">
                         <div class="fishing-setting-title">
                             <span>F11上饵间隔</span>
@@ -1363,7 +1328,6 @@
                         </div>
                     </div>
                     
-                    <!-- F8重新抛竿间隔设置 -->
                     <div class="fishing-setting-item">
                         <div class="fishing-setting-title">
                             <span>F8重新抛竿间隔</span>
@@ -1383,7 +1347,6 @@
                         </div>
                     </div>
                     
-                    <!-- 自动上饵开关 -->
                     <div class="fishing-setting-item">
                         <div class="fishing-setting-title">
                             <span>自动上饵开关</span>
@@ -1518,13 +1481,11 @@
                 </div>
             </div>
 
-            <!-- 新增打怪模式设置部分 -->
             <div class="section">
                 <h2 class="section-title">⚔️ 打怪模式设置</h2>
                 <p style="text-align: center; color: #666; margin-bottom: 20px;">设置打怪模式各按键循环时间（带±30%随机），时间单位为秒，支持0.1-3600秒</p>
                 
                 <div class="fight-settings-grid">
-                    <!-- F5设置 -->
                     <div class="fight-setting-item">
                         <div class="fight-setting-title">
                             <span>F5快捷键循环</span>
@@ -1544,7 +1505,6 @@
                         </div>
                     </div>
                     
-                    <!-- F6设置 -->
                     <div class="fight-setting-item">
                         <div class="fight-setting-title">
                             <span>F6快捷键循环</span>
@@ -1564,7 +1524,6 @@
                         </div>
                     </div>
                     
-                    <!-- F7设置 -->
                     <div class="fight-setting-item">
                         <div class="fight-setting-title">
                             <span>F7快捷键循环</span>
@@ -1584,7 +1543,6 @@
                         </div>
                     </div>
                     
-                    <!-- F9设置 -->
                     <div class="fight-setting-item">
                         <div class="fight-setting-title">
                             <span>F9快捷键循环</span>
@@ -1604,7 +1562,6 @@
                         </div>
                     </div>
                     
-                    <!-- 空格键设置 -->
                     <div class="fight-setting-item">
                         <div class="fight-setting-title">
                             <span>空格键（跳跃）循环</span>
@@ -1630,7 +1587,6 @@
         </div>
     </div>                
 
-    <!-- 任务栏指示器 - 移除隐藏按钮，增加全部恢复默认按钮 -->
     <div id="taskbar-indicator" class="taskbar-hidden">
         <div class="taskbar-left">
             <div class="taskbar-title">🎣 钓鱼助手</div>
@@ -1663,17 +1619,15 @@
             hours: 0,
             minutes: 0,
             seconds: 0,
-            modeActive: 0,        // 当前模式：0=无定时, 1=绿灯, 2=黄灯, 3=红灯, 4=紫灯
-            fishingMode: false,   // 钓鱼模式状态
-            fightingMode: false,  // 打怪模式状态
-            fishingModeType: -1   // -1=未连接, 0=怀旧服，1=正式服
+            modeActive: 0,
+            fishingMode: false,
+            fightingMode: false,
+            fishingModeType: -1
         };
         
-        // 新增：循环人数相关变量
-        let cyclePersonCount = -1; // -1表示未连接，0表示无限
-        let currentPerson = 0; // 从0开始，显示时+1
+        let cyclePersonCount = -1;
+        let currentPerson = 0;
         
-        // 打怪设置相关变量
         let fightSettings = {
             f5Time: null,
             f6Time: null,
@@ -1682,34 +1636,30 @@
             spaceTime: null
         };
         
-        // 新增：钓鱼设置相关变量
         let fishingSettings = {
-            f11Interval: null,  // F11上饵间隔（秒）
-            f8Cycle: null,      // F8重新抛竿间隔（毫秒）（新增）
-            autoBaitEnabled: null // 自动上饵开关
+            f11Interval: null,
+            f8Cycle: null,
+            autoBaitEnabled: null
         };
         
-        // 新增：反传送F3开关变量
-        let antiTeleportEnabled = null; // null表示未连接，true/false表示状态
+        let antiTeleportEnabled = null;
         
-        // 默认值
-        const DEFAULT_FISHING_F11 = 610;  // 默认610秒
-        const DEFAULT_FISHING_F8 = 30;    // 默认30秒（新增）
-        const DEFAULT_AUTO_BAIT_ENABLED = true; // 默认开启自动上饵
-        const DEFAULT_ANTI_TELEPORT_ENABLED = true; // 默认开启反传送F3（新增）
-        const DEFAULT_FIGHT_F5 = 300;     // 30秒 (单位0.1秒)
-        const DEFAULT_FIGHT_F6 = 8;       // 0.8秒
-        const DEFAULT_FIGHT_F7 = 50;      // 5秒
-        const DEFAULT_FIGHT_F9 = 12;      // 1.2秒
-        const DEFAULT_FIGHT_SPACE = 300;  // 30秒（修改）
-        const DEFAULT_TIME_1H = 60;        // 1小时模式默认60分钟
-        const DEFAULT_TIME_2H = 120;       // 2小时模式默认120分钟
-        const DEFAULT_TIME_3H = 180;       // 3小时模式默认180分钟
-        const DEFAULT_TIME_4H = 240;       // 4小时模式默认240分钟
-        const DEFAULT_PERSON_COUNT = 0;     // 默认无限循环（0表示无限）
-        const DEFAULT_FISHING_MODE = 0;     // 默认怀旧服模式
+        const DEFAULT_FISHING_F11 = 610;
+        const DEFAULT_FISHING_F8 = 30;
+        const DEFAULT_AUTO_BAIT_ENABLED = true;
+        const DEFAULT_ANTI_TELEPORT_ENABLED = true;
+        const DEFAULT_FIGHT_F5 = 300;
+        const DEFAULT_FIGHT_F6 = 8;
+        const DEFAULT_FIGHT_F7 = 50;
+        const DEFAULT_FIGHT_F9 = 12;
+        const DEFAULT_FIGHT_SPACE = 300;
+        const DEFAULT_TIME_1H = 60;
+        const DEFAULT_TIME_2H = 120;
+        const DEFAULT_TIME_3H = 180;
+        const DEFAULT_TIME_4H = 240;
+        const DEFAULT_PERSON_COUNT = 0;
+        const DEFAULT_FISHING_MODE = 0;
         
-        // 临时时间设置变量
         let tempTime1h = null;
         let tempTime2h = null;
         let tempTime3h = null;
@@ -1721,23 +1671,18 @@
         let lastResponseTime = 0;
         let connectionCheckInterval = null;
         
-        // 任务栏状态（默认显示）
         let taskbarVisible = true;
         
-        // 新增：设备数据读取队列
         let settingReadQueue = [];
         let isReadingSettings = false;
         let settingReadRetryCount = 0;
         const MAX_SETTING_RETRY = 3;
         let settingReadTimeout = null;
         
-        // 新增：新固件检测标记，防止重复弹窗
         let firmwareUpgradeShown = false;
-        // 新增：新固件设备的Usage Page和Usage
         const NEW_FIRMWARE_USAGE_PAGE = 0xFFD9;
         const NEW_FIRMWARE_USAGE = 0x46;
         
-        // DOM元素
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
         const connectBtn = document.getElementById('connectBtn');
@@ -1748,7 +1693,6 @@
         const cyclePersonCountElement = document.getElementById('cyclePersonCount');
         const currentPersonElement = document.getElementById('currentPerson');
         
-        // 控制按钮元素
         const classicModeBtn = document.getElementById('classicModeBtn');
         const retailModeBtn = document.getElementById('retailModeBtn');
         const startFishingBtn = document.getElementById('startFishingBtn');
@@ -1756,38 +1700,26 @@
         const startFightingBtn = document.getElementById('startFightingBtn');
         const stopFightingBtn = document.getElementById('stopFightingBtn');
         
-        // 新增：反传送F3按钮元素
         const antiTeleportOnBtn = document.getElementById('antiTeleportOnBtn');
         const antiTeleportOffBtn = document.getElementById('antiTeleportOffBtn');
         
-        // 自动上饵按钮元素
         const autoBaitOnBtn = document.getElementById('autoBaitOnBtn');
         const autoBaitOffBtn = document.getElementById('autoBaitOffBtn');
         const autoBaitDisplay = document.getElementById('autoBaitDisplay');
         
-        // 任务栏元素
         const taskbarIndicator = document.getElementById('taskbar-indicator');
         const taskbarCountdown = document.getElementById('taskbarCountdown');
         const taskbarPerson = document.getElementById('taskbarPerson');
         const taskbarStatus = document.getElementById('taskbarStatus');
         const taskbarResetAllBtn = document.getElementById('taskbarResetAllBtn');
         
-        // 新增：新固件升级弹窗元素
         const firmwareUpgradeOverlay = document.getElementById('firmwareUpgradeOverlay');
 
-        // ========== 新增：新固件检测函数 ==========
-        /**
-         * 检测设备是否为新固件设备（通过Usage Page和Usage匹配）
-         * @param {HIDDevice} device - 要检测的HID设备
-         * @returns {boolean} - 如果是新固件设备返回true，否则返回false
-         */
         function isNewFirmwareDevice(device) {
             if (!device) return false;
             
-            // 方法1：通过collections检测Usage Page和Usage
             if (device.collections && device.collections.length > 0) {
                 for (const collection of device.collections) {
-                    // 检查Usage Page和Usage是否匹配
                     if (collection.usagePage === NEW_FIRMWARE_USAGE_PAGE && 
                         collection.usage === NEW_FIRMWARE_USAGE) {
                         console.log('检测到新固件设备 (通过collections):', device.productName);
@@ -1796,26 +1728,9 @@
                 }
             }
             
-            // 方法2：通过设备的产品名称关键词检测
-            const productName = (device.productName || '').toLowerCase();
-            const keywords = ['fishing', '钓鱼', '助手', 'helper'];
-            for (const keyword of keywords) {
-                if (productName.includes(keyword)) {
-                    // 进一步检测：如果设备有USB接口描述符中的usage信息
-                    console.log('可能为新固件设备 (通过名称关键词):', device.productName);
-                    // 保守起见，如果名称匹配且不是已知的旧设备，则视为新固件
-                    return true;
-                }
-            }
-            
             return false;
         }
 
-        /**
-         * 检测设备集合中是否包含新固件Usage
-         * @param {Array} collections - HID设备的collections数组
-         * @returns {boolean}
-         */
         function hasNewFirmwareUsage(collections) {
             if (!collections || collections.length === 0) return false;
             
@@ -1824,7 +1739,6 @@
                     collection.usage === NEW_FIRMWARE_USAGE) {
                     return true;
                 }
-                // 递归检查子集合
                 if (collection.children && collection.children.length > 0) {
                     if (hasNewFirmwareUsage(collection.children)) {
                         return true;
@@ -1834,31 +1748,22 @@
             return false;
         }
 
-        /**
-         * 显示新固件升级提示弹窗
-         */
         function showFirmwareUpgradeModal() {
             if (firmwareUpgradeShown) return;
             firmwareUpgradeShown = true;
             firmwareUpgradeOverlay.classList.add('show');
         }
 
-        /**
-         * 关闭新固件升级提示弹窗
-         */
         function closeFirmwareUpgradeModal() {
             firmwareUpgradeOverlay.classList.remove('show');
         }
 
-        // 点击弹窗外关闭（点击背景关闭）
         firmwareUpgradeOverlay.addEventListener('click', function(e) {
             if (e.target === this) {
                 closeFirmwareUpgradeModal();
             }
         });
 
-        // ========== 修改：设备连接管理器中的设备筛选逻辑 ==========
-        // 设备连接管理器
         class DeviceConnectionManager {
             constructor() {
                 this.device = null;
@@ -2068,12 +1973,10 @@
             }
         }
         
-        // ========== 修改：连接设备函数 - 增加新固件检测 ==========
         async function connectDevice() {
             if (!checkWebHIDSupport()) return;
             
             try {
-                // 请求设备访问权限 - 使用VID列表过滤
                 const devices = await navigator.hid.requestDevice({
                     filters: [
                         { vendorId: 0x239A },
@@ -2086,7 +1989,8 @@
                         { vendorId: 0x17EF },
                         { vendorId: 0x1532 },
                         { vendorId: 0x1038 },
-                        { vendorId: 0x1B1C }
+                        { vendorId: 0x1B1C },
+                        { usagePage: 0xFFD9, usage: 0x46 }
                     ]
                 });
                 
@@ -2097,24 +2001,16 @@
                 
                 const selectedDevice = devices[0];
                 
-                // ===== 关键修改：检测是否为新固件设备 =====
-                // 在打开设备前，尝试获取设备的集合信息
-                // 注意：collections信息在设备打开后才会完整填充
-                // 所以我们需要先打开设备，再检测
-                
                 if (!selectedDevice.opened) {
                     await selectedDevice.open();
                 }
                 
-                // 现在设备已打开，检测是否为新固件设备
                 const isNewFw = isNewFirmwareDevice(selectedDevice);
                 
                 if (isNewFw) {
-                    // 这是新固件设备，显示提示弹窗并断开连接
                     console.log('检测到新固件设备，拒绝连接:', selectedDevice.productName);
                     showFirmwareUpgradeModal();
                     
-                    // 关闭设备连接
                     try {
                         if (selectedDevice.opened) {
                             await selectedDevice.close();
@@ -2123,45 +2019,33 @@
                         console.warn('关闭新固件设备时出错:', e);
                     }
                     
-                    // 不进行后续连接操作
                     return;
                 }
                 
-                // 如果是旧固件设备，继续正常连接流程
                 console.log('检测到旧固件设备，正常连接:', selectedDevice.productName);
                 
-                // 设置连接管理器
                 connectionManager.device = selectedDevice;
                 connectionManager.isConnected = true;
                 device = selectedDevice;
                 isConnected = true;
                 
-                // 添加输入报告监听器
                 device.addEventListener('inputreport', handleInputReport);
                 
-                // 开始心跳检测
                 connectionManager.startHeartbeat();
                 
-                // 更新UI
                 updateConnectionStatus();
                 showNotification('设备连接成功', 'success');
                 
-                // 显示任务栏
                 showTaskbar();
                 
-                // 启动设备初始化过程
                 connectionManager.startDeviceInitialization();
                 
-                // 开始状态更新循环
                 startStatusUpdates();
                 
-                // 更新控制按钮状态
                 updateControlButtons();
                 
-                // 更新钓鱼模式按钮
                 updateFishingModeButtons();
                 
-                // 更新反传送F3按钮
                 updateAntiTeleportButtons();
                 
             } catch (error) {
@@ -2174,7 +2058,6 @@
             }
         }
 
-        // ========== 以下为原有代码，保持不变 ==========
         function clearSettingReadQueue() {
             settingReadQueue = [];
             isReadingSettings = false;
@@ -2185,10 +2068,8 @@
             }
         }
         
-        // 创建连接管理器
         const connectionManager = new DeviceConnectionManager();
         
-        // 检查浏览器是否支持Web HID
         function checkWebHIDSupport() {
             if (!('hid' in navigator)) {
                 showNotification('您的浏览器不支持Web HID API', 'error');
@@ -2198,7 +2079,6 @@
             return true;
         }
         
-        // 页面加载时自动重连已授权设备
         async function autoReconnectOnLoad() {
             try {
                 const devices = await navigator.hid.getDevices();
@@ -2211,7 +2091,6 @@
                             await lastDevice.open();
                         }
                         
-                        // ===== 关键修改：自动重连时也检测新固件 =====
                         const isNewFw = isNewFirmwareDevice(lastDevice);
                         
                         if (isNewFw) {
@@ -2227,7 +2106,6 @@
                             return false;
                         }
                         
-                        // 旧固件设备，正常连接
                         connectionManager.device = lastDevice;
                         connectionManager.isConnected = true;
                         device = lastDevice;
@@ -2252,13 +2130,11 @@
             return false;
         }
         
-        // 断开设备连接
         async function disconnectDevice() {
             await connectionManager.handleImmediateDisconnection();
             showNotification('已手动断开设备', 'info');
         }
         
-        // 检查连接状态
         async function checkConnectionStatus() {
             if (!isConnected || !device) return false;
             
@@ -2276,7 +2152,6 @@
             }
         }
         
-        // 重置显示
         function resetDisplay() {
             document.getElementById('time1hDisplay').textContent = '--分钟';
             document.getElementById('time1hSlider').value = 59;
@@ -2592,7 +2467,6 @@
             }
         }
 
-        // 处理输入报告
         function handleInputReport(event) {
             const { data } = event;
             const dataArray = new Uint8Array(data.buffer);
@@ -2660,7 +2534,6 @@
                     updateAntiTeleportButtons();
                 }
                 else if (reportType === 0xFA) {
-                    // Ping响应
                 }
                 else {
                     if (dataArray.length >= 9) {
@@ -2693,7 +2566,6 @@
             }
         }
         
-        // 发送控制命令到设备
         async function sendControlCommand(command, value = 0, retryCount = 0) {
             if (!device || !device.opened || !isConnected) {
                 await connectionManager.handleImmediateDisconnection();
@@ -2740,7 +2612,6 @@
             }
         }
         
-        // 获取设备设置
         async function getSettings() {
             console.log('请求获取设备设置');
             const success = await sendControlCommand(1);
@@ -2752,7 +2623,6 @@
             return success;
         }
         
-        // 获取打怪设置
         async function getFightSettings() {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2764,7 +2634,6 @@
             }
         }
         
-        // 获取钓鱼设置
         async function getFishingSettings() {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2776,7 +2645,6 @@
             }
         }
         
-        // 设置钓鱼模式
         async function setFishingMode(mode) {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2791,7 +2659,6 @@
             }
         }
         
-        // 设置循环人数
         async function setPersonCount(count) {
             const success = await sendControlCommand(9, count);
             if (success) {
@@ -2808,7 +2675,6 @@
             }
         }
         
-        // 启动钓鱼模式
         async function startFishing() {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2824,7 +2690,6 @@
             }
         }
         
-        // 关闭钓鱼模式
         async function stopFishing() {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2836,7 +2701,6 @@
             }
         }
         
-        // 启动打怪模式
         async function startFighting() {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2852,7 +2716,6 @@
             }
         }
         
-        // 关闭打怪模式
         async function stopFighting() {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2864,7 +2727,6 @@
             }
         }
         
-        // 切换循环模式
         async function toggleCycleMode(mode) {
             if (!isConnected) {
                 showNotification('请先连接设备', 'warning');
@@ -2882,7 +2744,6 @@
             }
         }
         
-        // 设置绿灯模式默认时间并保存
         async function setDefaultTime1h() {
             const value = 60;
             document.getElementById('time1hSlider').value = value;
@@ -2897,7 +2758,6 @@
             }
         }
         
-        // 设置黄灯模式默认时间并保存
         async function setDefaultTime2h() {
             const value = 120;
             document.getElementById('time2hSlider').value = value;
@@ -2912,7 +2772,6 @@
             }
         }
         
-        // 设置红灯模式默认时间并保存
         async function setDefaultTime3h() {
             const value = 180;
             document.getElementById('time3hSlider').value = value;
@@ -2927,7 +2786,6 @@
             }
         }
         
-        // 设置紫灯模式默认时间并保存
         async function setDefaultTime4h() {
             const value = 240;
             document.getElementById('time4hSlider').value = value;
@@ -2942,7 +2800,6 @@
             }
         }
         
-        // 保存1小时模式时间到EEPROM
         async function saveTime1h() {
             const value = parseInt(document.getElementById('time1hSlider').value);
             if (value >= 1 && value <= 120) {
@@ -2956,7 +2813,6 @@
             }
         }
         
-        // 保存2小时模式时间到EEPROM
         async function saveTime2h() {
             const value = parseInt(document.getElementById('time2hSlider').value);
             if (value >= 1 && value <= 240) {
@@ -2970,7 +2826,6 @@
             }
         }
         
-        // 保存3小时模式时间到EEPROM
         async function saveTime3h() {
             const value = parseInt(document.getElementById('time3hSlider').value);
             if (value >= 1 && value <= 360) {
@@ -2984,7 +2839,6 @@
             }
         }
         
-        // 保存4小时模式时间到EEPROM
         async function saveTime4h() {
             const value = parseInt(document.getElementById('time4hSlider').value);
             if (value >= 1 && value <= 480) {
@@ -2998,7 +2852,6 @@
             }
         }
         
-        // 更新循环人数显示
         function updatePersonDisplay() {
             if (cyclePersonCount === -1) {
                 personDisplay.textContent = '无限';
@@ -3020,7 +2873,6 @@
             updatePersonButtons();
         }
         
-        // 重置人数选择按钮状态
         function resetPersonButtons() {
             const buttons = document.querySelectorAll('.person-btn');
             buttons.forEach(btn => {
@@ -3028,7 +2880,6 @@
             });
         }
         
-        // 更新人数选择按钮状态
         function updatePersonButtons() {
             const buttons = document.querySelectorAll('.person-btn');
             buttons.forEach(btn => {
@@ -3047,7 +2898,6 @@
             });
         }
         
-        // 更新打怪设置显示
         function updateFightSettingsDisplay() {
             if (fightSettings.f5Time !== null) {
                 document.getElementById('fightF5Display').textContent = (fightSettings.f5Time / 10).toFixed(1) + '秒';
@@ -3072,7 +2922,6 @@
             updateFightSaveButtons();
         }
         
-        // 更新钓鱼设置显示
         function updateFishingSettingsDisplay() {
             if (fishingSettings.f11Interval !== null) {
                 document.getElementById('fishingF11Display').textContent = fishingSettings.f11Interval + '秒';
@@ -3096,7 +2945,6 @@
             updateFishingSaveButtons();
         }
         
-        // 更新打怪保存按钮状态
         function updateFightSaveButtons() {
             const inputs = ['fightF5Input', 'fightF6Input', 'fightF7Input', 'fightF9Input', 'fightSpaceInput'];
             inputs.forEach(id => {
@@ -3115,7 +2963,6 @@
             });
         }
         
-        // 更新钓鱼保存按钮状态
         function updateFishingSaveButtons() {
             const inputs = ['fishingF11Input', 'fishingF8Input'];
             inputs.forEach(id => {
@@ -3134,7 +2981,6 @@
             });
         }
         
-        // 开始状态更新循环
         function startStatusUpdates() {
             if (statusInterval) {
                 clearInterval(statusInterval);
@@ -3146,7 +2992,6 @@
             }, 1000);
         }
         
-        // 更新设置显示
         function updateSettingsDisplay() {
             console.log('更新设置显示:', settings);
             
@@ -3178,7 +3023,6 @@
             resetSavingIndicators();
         }
 
-        // 更新状态显示
         function updateStatusDisplay() {
             if (status.modeActive > 0 && status.fishingMode) {
                 const hoursStr = status.hours.toString().padStart(2, '0');
@@ -3206,7 +3050,6 @@
             document.getElementById('gameMode').textContent = status.fishingModeType === -1 ? '--' : (status.fishingModeType === 0 ? '怀旧服' : '正式服');
         }
         
-        // 显示通知
         function showNotification(message, type = 'info') {
             notification.textContent = message;
             notification.className = `notification ${type} show`;
@@ -3216,7 +3059,6 @@
             }, 3000);
         }
         
-        // 初始化滑块事件
         function initSliders() {
             const sliders = document.querySelectorAll('.slider');
             sliders.forEach(slider => {
@@ -3230,7 +3072,6 @@
             });
         }
         
-        // 打怪设置相关函数
         async function saveFightF5() {
             if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fightF5Input');
@@ -3351,7 +3192,6 @@
             }
         }
         
-        // 钓鱼设置相关函数
         async function saveFishingF11() {
             if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             const input = document.getElementById('fishingF11Input');
@@ -3430,7 +3270,6 @@
             }
         }
         
-        // 全部恢复默认功能
         async function resetAllToDefault() {
             if (!isConnected) { showNotification('请先连接设备', 'warning'); return; }
             if (!confirm('确定要将所有设置恢复为默认值吗？\n（包括：换人时间、打怪设置、钓鱼设置、反传送、循环人数）')) return;
@@ -3449,7 +3288,6 @@
             }, 800);
         }
         
-        // 页面加载时初始化
         window.addEventListener('load', async () => {
             checkWebHIDSupport();
             updateConnectionStatus();
@@ -3497,7 +3335,6 @@
                 }
             });
             
-            // 禁用F5、F11、F12等功能键
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'F5' || e.keyCode === 116) {
                     e.preventDefault();
@@ -3543,7 +3380,6 @@
             });
         });
         
-        // 全局导出函数供按钮使用
         window.setFishingMode = setFishingMode;
         window.setPersonCount = setPersonCount;
         window.startFishing = startFishing;
